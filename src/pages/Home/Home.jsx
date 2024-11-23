@@ -14,7 +14,7 @@ const Home = () => {
 
   // Fetch products
   useEffect(() => {
-    axios.get('http://localhost:3000/api/products')
+    axios.get('https://student-stationary-backend.vercel.app/api/products')
       .then((response) => {
         setProducts(response.data.data); // Assuming data is in `data.data`
         setLoadingProducts(false);
@@ -24,7 +24,7 @@ const Home = () => {
 
   // Fetch orders
   useEffect(() => {
-    axios.get('http://localhost:3000/api/orders')
+    axios.get('https://student-stationary-backend.vercel.app/api/orders')
       .then((response) => {
         setOrders(response.data.data); // Assuming data is in `data.data`
         setLoadingOrders(false);

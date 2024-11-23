@@ -4,7 +4,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 const fetchProducts = async () => {
-  const response = await axios.get("http://localhost:3000/api/products"); // Update with your API endpoint
+  const response = await axios.get("https://student-stationary-backend.vercel.app/api/products"); // Update with your API endpoint
   return response.data;
 };
 
@@ -13,7 +13,6 @@ const AllProducts = () => {
     queryKey: ["products"],
     queryFn: fetchProducts,
   });
-  console.log(data);
   if (isLoading) {
     return <div className="text-center mt-10 text-lg">Loading products...</div>;
   }

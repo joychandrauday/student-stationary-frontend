@@ -18,7 +18,7 @@ const AddProduct = () => {
     setIsSubmitting(true);
     try {
       const response = await axios.post(
-        "http://localhost:3000/api/products",
+        "https://student-stationary-backend.vercel.app/api/products",
         data
       );
       if (response.status === 201) {

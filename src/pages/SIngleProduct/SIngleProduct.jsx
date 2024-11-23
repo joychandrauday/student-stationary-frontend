@@ -5,7 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const fetchProduct = async (id) => {
-  const response = await axios.get(`http://localhost:3000/api/products/${id}`);
+  const response = await axios.get(`https://student-stationary-backend.vercel.app/api/products/${id}`);
   return response.data.data;
 };
 
@@ -38,11 +38,10 @@ const SingleProduct = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:3000/api/orders",
+        "https://student-stationary-backend.vercel.app/api/orders",
         orderData
       );
       toast.success("Order placed successfully!");
-      console.log("Order Response:", response.data);
       refetch(); // Refresh product data (optional)
     } catch (err) {
       alert(`Failed to place order: ${err.message}`);
