@@ -223,7 +223,7 @@ const Navbar = () => {
                             <a href="/products" className="hover:text-primary-foreground transition duration-200">Products</a>
                             <a href="/categories" className="hover:text-primary-foreground transition duration-200">Categories</a>
                             <a href="/about" className="hover:text-primary-foreground transition duration-200">About Us</a>
-                            <a href="/contact" className="hover:text-primary-foreground transition duration-200">Contact</a>
+                            <a href="/contact-us" className="hover:text-primary-foreground transition duration-200">Contact</a>
 
                             {/* Mobile Profile & Admin Links */}
                             {user?.role === "admin" ? (
