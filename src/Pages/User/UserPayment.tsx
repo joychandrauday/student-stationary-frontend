@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useVerifyOrderQuery } from '@/Redux/features/order/orderApi';
-import useUpdatePaymentStatus from '@/Utils/useUpdatePamentStatus';
+// import useUpdatePaymentStatus from '@/Utils/useUpdatePamentStatus';
 import { useSearchParams } from 'react-router-dom';
 
 const UserPayment = () => {
@@ -19,7 +19,7 @@ const UserPayment = () => {
     }
 
     const payment = data?.data?.[0] || null;
-    useUpdatePaymentStatus(payment);
+    // useUpdatePaymentStatus(payment);
 
     return (
         <div className="max-w-3xl mx-auto p-6 border rounded-lg shadow-lg bg-white">
