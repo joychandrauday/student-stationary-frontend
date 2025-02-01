@@ -1,6 +1,8 @@
 import { ArrowRightIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const DiscountGrid = () => {
+    const navigate = useNavigate()
     return (
         <div className="container mx-auto py-12 px-4 md:px-8 lg:px-12 overflow-hidden">
             <div className="wrapper">
@@ -15,9 +17,9 @@ const DiscountGrid = () => {
                     >
                         <div className="flex justify-center items-start h-full bg-black bg-opacity-50 text-center text-white text-xl sm:text-2xl lg:text-3xl font-semibold pt-12">
                             <div className="p-4 text-left">
-                                <span>50% OFF on Selected Items</span>
+                                <span>Up to 50% OFF on Selected Items</span>
                                 <div className="mt-4">
-                                    <button className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
+                                    <button onClick={() => (window.location.hash = 'on-sale')} className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
                                         Shop Now
                                         <ArrowRightIcon className="group-hover:translate-x-1 transition duration-300 ml-2" />
                                     </button>
@@ -38,7 +40,7 @@ const DiscountGrid = () => {
                             <div className="p-4 text-left">
                                 <span>Buy One Get One Free</span>
                                 <div className="mt-4">
-                                    <button className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
+                                    <button onClick={() => navigate(`/explore`)} className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
                                         Shop Now
                                         <ArrowRightIcon className="group-hover:translate-x-1 transition duration-300 ml-2" />
                                     </button>
@@ -61,7 +63,7 @@ const DiscountGrid = () => {
                                 <div className="text-left">
                                     <span>Exclusive Summer Deals</span>
                                     <div className="mt-4">
-                                        <button className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
+                                        <button onClick={() => navigate(`/explore`)} className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
                                             Shop Now
                                             <ArrowRightIcon className="group-hover:translate-x-1 transition duration-300 ml-2" />
                                         </button>
@@ -82,7 +84,7 @@ const DiscountGrid = () => {
                                 <div className="text-left">
                                     <span>Special Winter Offers</span>
                                     <div className="mt-4">
-                                        <button className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
+                                        <button onClick={() => navigate(`/explore`)} className="px-6 text-sm border rounded-full py-2 bg-transparent text-white font-semibold transition duration-300 flex items-center justify-center group">
                                             Shop Now
                                             <ArrowRightIcon className="group-hover:translate-x-1 transition duration-300 ml-2" />
                                         </button>
@@ -93,7 +95,7 @@ const DiscountGrid = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -102,7 +102,7 @@ const AllProducts = () => {
     const handleAddToCart = (product: IProduct) => {
         addToCart(product, user, updateProduct, updateUser, refetch);
     };
-    const categories: string[] = ["Writings", "Office", "Art", "Educational", "Technology", "Others"];
+    const categories: string[] = ["Writing", "Office", "Art", "Educational", "Technology", "Others"];
 
     if (isLoading) return <p>Loading...</p>;
     if (isError) return <p>Error fetching products.</p>;

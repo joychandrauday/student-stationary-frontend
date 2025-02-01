@@ -7,7 +7,7 @@ import { useUpdateUserMutation } from "@/Redux/features/user/userApi";
 import useUser from "@/Utils/useUser";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useLocation, useNavigate } from "react-router-dom";
+import { ScrollRestoration, useLocation, useNavigate } from "react-router-dom";
 
 const Explore = () => {
     const userToken = useAppSelector(useCurrentUser);
@@ -164,9 +164,8 @@ const Explore = () => {
                         </div>
                     ))}
                 </div>
-
-
             </div>
+            <ScrollRestoration />
         </div>
     );
 };
