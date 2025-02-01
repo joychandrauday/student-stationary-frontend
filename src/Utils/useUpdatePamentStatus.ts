@@ -1,33 +1,30 @@
-import { useUpdateWholeOrderMutation } from "@/Redux/features/order/orderApi";
-import { useEffect } from "react";
+
+import { useUpdateOrderMutation } from "@/Redux/features/order/orderApi"; // Assuming you have this API
 import toast from "react-hot-toast";
+
 interface Payment {
-    bank_status: string;
-    customer_order_id: string;
+    customer_order_id?: string;
+    bank_status?: string;
 }
 
-const useUpdatePaymentStatus = (payment: Payment) => {
-    const [updateWholeOrder] = useUpdateWholeOrderMutation()
-    useEffect(() => {
-        if (!payment) return;
+const useUpdatePaymentStatus = () => {
+    const [updateOrder] = useUpdateOrderMutation();
 
-        const updateOrderStatus = async () => {
-            try {
-                if (payment.customer_order_id) {
-                    const updatedData = {
-                        paymentStatus: payment.bank_status === "Success" ? "Completed" : "Failed",
-                    };
-                    await updateWholeOrder({ orderId: payment.customer_order_id, updatedData });
-                    toast.success("Order updated successfully!");
-                }
-            } catch (error) {
-                console.error("Error updating order:", error);
-                toast.error("Failed to update order");
-            }
-        };
+    return async (payment: Payment | null) => {
+        if (!payment || !payment.customer_order_id) return;
 
-        updateOrderStatus();
-    }, [payment, updateWholeOrder]);
+        try {
+            const updatedData = {
+                paymentStatus: payment.bank_status === "Success" ? "Completed" : "Failed",
+            };
+
+            await updateOrder({ orderId: payment.customer_order_id, updatedData });
+            toast.success("Order updated successfully!");
+        } catch (error) {
+            console.error("Error updating order:", error);
+            toast.error("Failed to update order");
+        }
+    };
 };
 
 export default useUpdatePaymentStatus;
