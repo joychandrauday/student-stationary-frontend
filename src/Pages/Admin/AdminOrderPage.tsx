@@ -63,7 +63,7 @@ const AdminOrderPage = () => {
                     <tbody>
                         {orders?.map((order) => (
                             <tr key={order._id} className="border-b border-gray-700">
-                                <td className="py-4 px-4">{order._id}</td>
+                                <td className="py-4 px-4">{order.transaction.id}</td>
                                 <td className="py-4 px-4">{order.user.name}</td>
                                 <td className="py-4 px-4">{
                                     order.products.length && order.products.map(product => <><li>{product.productId.name}</li></>)
@@ -88,10 +88,12 @@ const AdminOrderPage = () => {
                                     <div className="flex space-x-3">
                                         <select
                                             value={order.orderStatus}
+                                            defaultValue={order.orderStatus}
                                             onChange={(e) => handleStatusChange(order._id, e.target.value)}
                                             className="shadow py-1 bg-primary-foreground hover:bg-primary "
                                         >
                                             <option value="Pending">Pending</option>
+                                            <option value="Processing">Processing</option>
                                             <option value="Shipped">Shipped</option>
                                             <option value="Delivered">Delivered</option>
                                         </select>

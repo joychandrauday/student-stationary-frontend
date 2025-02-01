@@ -1,4 +1,3 @@
-
 import { FaChartPie, FaFileAlt, FaUsers, FaShoppingCart } from 'react-icons/fa';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
@@ -6,6 +5,9 @@ import { useAllOrdersQuery } from '@/Redux/features/order/orderApi';
 import { useGetProductsQuery } from '@/Redux/features/product/productApi';
 import { useGetUsersQuery } from '@/Redux/features/user/userApi';
 import { IOrder, useAllProductssQuery, useAllUsersQuery } from '@/Interfaces/types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import logo from '../../assets/studentstationarylogonav.png'
 
 // Registering Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -71,6 +73,38 @@ const AdminReport = () => {
                 beginAtZero: true,
             },
         },
+    };
+
+    const generatePDF = () => {
+        const doc = new jsPDF();
+
+        doc.addImage(logo, 'PNG', 160, 10, 45, 13);
+        doc.setFontSize(18);
+        doc.text('Admin Sales Report', 14, 15);
+
+        const totalSales = orders.reduce((total, order) => total + order.amount, 0) || 0;
+        const totalUsers = users.length || 0;
+        const totalOrders = orders.length || 0;
+
+        doc.setFontSize(12);
+        doc.text(`Total Sales: ৳${totalSales}`, 14, 25);
+        doc.text(`Total Users: ${totalUsers}`, 14, 32);
+        doc.text(`Total Orders: ${totalOrders}`, 14, 39);
+
+        autoTable(doc, {
+            startY: 45,
+            head: [['Order ID', 'Amount (৳)', 'Date']],
+            body: orders.map(order => [order._id, order.amount, new Date(order.createdAt).toLocaleDateString()]) || [],
+        });
+
+        doc.text('Top Selling Products:', 14, doc.lastAutoTable.finalY + 10);
+        autoTable(doc, {
+            startY: doc.lastAutoTable.finalY + 15,
+            head: [['Product Name', 'Quantity Sold', 'Price (৳)']],
+            body: sortedTopSelling.map(product => [product.productId.name, product.quantity, product.price]) || [],
+        });
+
+        doc.save('Admin_Sales_Report.pdf');
     };
     return (
         <div className="p-6 bg-gray-900 text-white min-h-screen space-y-6">
@@ -155,37 +189,33 @@ const AdminReport = () => {
 
             {/* Detailed Reports Table */}
             <div className="bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-blue-400 mb-4">Detailed Reports</h2>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-gray-700 text-gray-300">
-                                <th className="py-4 px-4">Report ID</th>
-                                <th className="py-4 px-4">Title</th>
-                                <th className="py-4 px-4">Date</th>
-                                <th className="py-4 px-4">Status</th>
-                                <th className="py-4 px-4">Actions</th>
+            <h2 className="text-xl font-bold text-blue-400 mb-4">Admin Reports</h2>
+            <button 
+                onClick={generatePDF}
+                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md mb-4">
+                Download Report (PDF)
+            </button>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-gray-700 text-gray-300">
+                            <th className="py-4 px-4">Order ID</th>
+                            <th className="py-4 px-4">Amount (৳)</th>
+                            <th className="py-4 px-4">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {orders?.map(order => (
+                            <tr key={order._id} className="border-b border-gray-700">
+                                <td className="py-4 px-4">{order._id}</td>
+                                <td className="py-4 px-4">৳{order.amount}</td>
+                                <td className="py-4 px-4">{new Date(order.createdAt).toLocaleDateString()}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <tr className="border-b border-gray-700">
-                                <td className="py-4 px-4">REP001</td>
-                                <td className="py-4 px-4">Monthly Sales</td>
-                                <td className="py-4 px-4">2025-01-01</td>
-                                <td className="py-4 px-4">
-                                    <span className="bg-green-200 text-green-800 px-3 py-1 rounded-full text-sm">
-                                        Completed
-                                    </span>
-                                </td>
-                                <td className="py-4 px-4">
-                                    <button className="text-blue-500 hover:text-blue-700 mr-4">View</button>
-                                    <button className="text-red-500 hover:text-red-700">Delete</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                        ))}
+                    </tbody>
+                </table>
             </div>
+        </div>
         </div>
     );
 };

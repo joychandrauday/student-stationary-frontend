@@ -28,9 +28,10 @@ const UserPayment = () => {
                         if (payment?.customer_order_id) {
                             const updatedData = {
                                 paymentStatus: payment.bank_status === "Success" ? "Completed" : "Failed",
+                                orderStatus: payment.bank_status === "Success" ? "Processing" : "Pending",
                             };
                             await updateWholeOrder({ orderId: payment.customer_order_id, updatedData });
-                            toast.success("Order ploaced successfully!");
+                            toast.success("Order placed successfully!");
                         }
                     } catch (error) {
                         console.error("Error updating order:", error);
