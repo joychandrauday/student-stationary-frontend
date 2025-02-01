@@ -8,7 +8,7 @@ import useUser from "@/Utils/useUser";
 import { IProduct, IUser, useAllProductssQuery } from "@/Interfaces/types";
 import addToCart from "@/Utils/addToCard";
 import { HiCurrencyBangladeshi } from "react-icons/hi2";
-
+import { motion } from "framer-motion";
 const FlashSale = () => {
     const [updateProduct] = useUpdateProductMutation();
     const [updateUser] = useUpdateUserMutation();
@@ -25,9 +25,37 @@ const FlashSale = () => {
     return (
         <div id="on-sale" className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white">
             {/* 🔥 Flash Sale Banner */}
-            <div className="relative w-full max-w-4xl text-center py-6 px-8 bg-red-600 shadow-lg text-3xl font-bold backdrop-blur-lg">
-                FLASH SALE!
-            </div>
+            <motion.div
+                className="relative w-full max-w-4xl text-center py-6 px-8 
+                       shadow-2xl text-3xl font-extrabold text-white 
+                       uppercase tracking-wide  
+                       backdrop-blur-lg overflow-hidden"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                whileHover={{
+                    background: [
+                        "linear-gradient(to right, #ff4e50, #fc913a, #ffcc67)",
+                        "linear-gradient(to right, #fc913a, #ffcc67, #a8e6cf)",
+                        "linear-gradient(to right, #ffcc67, #a8e6cf, #379683)",
+                        "linear-gradient(to right, #a8e6cf, #379683, #ff4e50)",
+                    ],
+                    transition: { duration: 2, repeat: Infinity, ease: "linear" },
+                }}
+            >
+                <span className="relative text-primary z-10 drop-shadow-lg">FLASH SALE!</span>
+
+                {/* Fancy Ribbon Effect */}
+                <div className="absolute -top-0 -right-8 rotate-12 bg-red-700 
+                            text-white px-4 py-1 text-sm font-semibold 
+                            shadow shadow-black">
+                    Limited Time offer!
+                </div>
+
+                {/* Shimmering Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent 
+                            w-full h-full animate-[shimmer_3s_infinite] opacity-20" />
+            </motion.div>
 
             {/* 📦 Flash Sale Products */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-10 w-full max-w-6xl">

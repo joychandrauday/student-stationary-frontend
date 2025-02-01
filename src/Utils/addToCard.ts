@@ -48,6 +48,7 @@ const addToCart = async (
             if (userResponse?.data) {
                 toast.success("Product added to cart successfully!");
                 refetch(); // Refetch to update any necessary data
+                window.location.reload();
             } else {
                 throw new Error("Failed to update user cart.");
             }

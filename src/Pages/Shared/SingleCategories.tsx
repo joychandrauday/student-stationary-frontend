@@ -6,8 +6,8 @@ import { useUpdateUserMutation } from '@/Redux/features/user/userApi';
 import { useCurrentUser } from '@/Redux/features/auth/authSlice';
 import { useAppSelector } from '@/Redux/features/hook';
 import useUser from '@/Utils/useUser';
-import toast from 'react-hot-toast';
 import { IProduct, IUser, useAllProductssQuery } from '@/Interfaces/types';
+import addToCart from '@/Utils/addToCard';
 
 const SingleCategories = () => {
     const navigate = useNavigate()
@@ -18,46 +18,6 @@ const SingleCategories = () => {
     const { user } = useUser(userToken?.email) as { user: IUser | null; isLoading: boolean; error: unknown };
 
     const [quantities, setQuantities] = useState<Record<string, number>>({});
-    const handleAddToCart = async (product: IProduct) => {
-        try {
-            const quantity = 1; // Ensure quantity is retrieved correctly
-            const totalPrice = quantity * product.price;
-
-            // Update product stock
-            const productResponse = await updateProduct({
-                productId: product._id,
-                updatedProduct: { quantity: product.quantity - quantity },
-            });
-
-            if (!productResponse?.data) {
-                throw new Error("Failed to update product stock.");
-            }
-
-            // Update user cart
-            if (user) {
-                const userResponse = await updateUser({
-                    userId: user._id,
-                    updatedData: {
-                        cart: [
-                            ...user.cart,
-                            { productId: product._id, quantity, price: product.price, totalPrice },
-                        ],
-                    },
-                });
-
-                if (userResponse?.data) {
-                    toast.success("Product added to cart successfully!");
-                } else {
-                    throw new Error("Failed to update user cart.");
-                }
-            } else {
-                throw new Error("User is not logged in.");
-            }
-        } catch (error) {
-            console.error("Error adding product to cart:", error);
-            toast.error("Something went wrong. Please try again.");
-        }
-    };
 
     // State for filters
     const [filters] = useState({
@@ -82,7 +42,7 @@ const SingleCategories = () => {
 
 
     const inStockParam = inStockFilter === "all" ? undefined : inStockFilter === "inStock" ? true : false;
-    const { data: products = [] } = useGetProductsQuery<useAllProductssQuery>({
+    const { data: products = [], refetch } = useGetProductsQuery<useAllProductssQuery>({
         name: searchTerm || undefined,
         category: categoryFilter || undefined,
         inStock: inStockParam,
@@ -92,6 +52,9 @@ const SingleCategories = () => {
         minPrice,
         maxPrice,
     });
+    const handleAddToCart = (product: IProduct) => {
+        addToCart(product, user, updateProduct, updateUser, refetch);
+    };
 
     return (
         <div className="container mx-auto px-4">

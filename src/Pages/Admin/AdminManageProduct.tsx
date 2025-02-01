@@ -115,6 +115,7 @@ const AdminManageProduct = () => {
             await updateProduct({ productId: selectedProduct._id, updatedProduct });
             setEditModalOpen(false);
             refetch()
+            toast.success('Product updated successfully!');
         }
     };
 
@@ -241,7 +242,14 @@ const AdminManageProduct = () => {
                                     <TableCell>{product.status}</TableCell>
                                     <TableCell>{product.price}</TableCell>
                                     <TableCell>{product.category}</TableCell>
-                                    <TableCell>{product.quantity}</TableCell>
+                                    <TableCell>
+                                        {
+                                            product.quantity === 0
+                                                ? <div className="bg-red-700 animate-pulse text-center text-white rounded-full">{product.quantity}</div>
+                                                : product.quantity
+                                        }
+
+                                    </TableCell>
                                     <TableCell>{product.discount}</TableCell>
                                     <TableCell className="text-center space-x-2">
                                         <Button

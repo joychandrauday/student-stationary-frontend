@@ -11,7 +11,7 @@ import addToCart from '@/Utils/addToCard';
 import useUser from '@/Utils/useUser';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router-dom';
+import { ScrollRestoration, useParams } from 'react-router-dom';
 
 const SingleProduct = () => {
     const { id } = useParams();
@@ -246,6 +246,7 @@ const SingleProduct = () => {
                     </div>
                 </div>
             </div>
+            <ScrollRestoration />
         </div>
     );
 };

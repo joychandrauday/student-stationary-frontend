@@ -4,9 +4,9 @@ import { useCurrentUser } from "@/Redux/features/auth/authSlice";
 import { useAppSelector } from "@/Redux/features/hook";
 import { useGetProductsQuery, useUpdateProductMutation } from "@/Redux/features/product/productApi";
 import { useUpdateUserMutation } from "@/Redux/features/user/userApi";
+import addToCart from "@/Utils/addToCard";
 import useUser from "@/Utils/useUser";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { ScrollRestoration, useLocation, useNavigate } from "react-router-dom";
 
 const Explore = () => {
@@ -17,7 +17,6 @@ const Explore = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-
     // State for filters
     const [filters, setFilters] = useState({
         searchTerm: "",
@@ -50,7 +49,7 @@ const Explore = () => {
     const inStockParam = inStockFilter === "all" ? undefined : inStockFilter === "inStock" ? true : false;
 
     // Fetch products with filtering and search logic
-    const { data: products = [], isLoading, isError } = useGetProductsQuery<useAllProductssQuery>({
+    const { data: products = [], isLoading, isError, refetch } = useGetProductsQuery<useAllProductssQuery>({
         name: searchTerm || undefined,  // Filter by search term
         category: categoryFilter || undefined,
         inStock: inStockParam,
@@ -73,46 +72,8 @@ const Explore = () => {
         }));
     };
 
-    // Handle adding product to the cart
-    const handleAddToCart = async (product: IProduct) => {
-        try {
-            const quantity = 1; // Ensure quantity is retrieved correctly
-            const totalPrice = quantity * product.price;
-
-            // Update product stock
-            const productResponse = await updateProduct({
-                productId: product._id,
-                updatedProduct: { quantity: product.quantity - quantity },
-            });
-
-            if (!productResponse?.data) {
-                throw new Error("Failed to update product stock.");
-            }
-
-            // Update user cart
-            if (user) {
-                const userResponse = await updateUser({
-                    userId: user._id,
-                    updatedData: {
-                        cart: [
-                            ...user.cart,
-                            { productId: product._id, quantity, price: product.price, totalPrice },
-                        ],
-                    },
-                });
-
-                if (userResponse?.data) {
-                    toast.success("Product added to cart successfully!");
-                } else {
-                    throw new Error("Failed to update user cart.");
-                }
-            } else {
-                throw new Error("User is not logged in.");
-            }
-        } catch (error) {
-            console.error("Error adding product to cart:", error);
-            toast.error("Something went wrong. Please try again.");
-        }
+    const handleAddToCart = (product: IProduct) => {
+        addToCart(product, user, updateProduct, updateUser, refetch);
     };
 
 
@@ -150,7 +111,8 @@ const Explore = () => {
                             <div className="mt-4 flex gap-2">
                                 <button
                                     onClick={() => handleAddToCart(product)}
-                                    className="w-full bg-primary-foreground text-white py-2 hover:bg-primary"
+                                    className={user === null || !product.inStock || product.quantity === 0 ? "w-full bg-primary-foreground text-white py-2 hover:bg-primary" : "w-full bg-gray-400 cursor-not-allowed text-white py-2"}
+                                    disabled={!product.inStock || product.quantity === 0 || !user}
                                 >
                                     Add to Cart
                                 </button>
@@ -166,7 +128,7 @@ const Explore = () => {
                 </div>
             </div>
             <ScrollRestoration />
-        </div>
+        </div >
     );
 };
 
