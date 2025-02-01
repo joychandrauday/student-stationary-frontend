@@ -23,7 +23,6 @@ const Navbar = () => {
     const { data: user, refetch } = useGetUserQuery(userToken?.email as string) as {
         data: IUser | null; isLoading: boolean; error: unknown; refetch: () => void;
     };
-    console.log(user, userToken);
     const dispatch = useAppDispatch();
 
     useEffect(() => {

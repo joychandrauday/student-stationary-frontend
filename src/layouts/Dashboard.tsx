@@ -8,7 +8,6 @@ import { Outlet } from 'react-router-dom';
 const Dashboard = () => {
     const userToken = useAppSelector(useCurrentUser);
     const { user } = useUser(userToken?.email);
-    console.log(user, userToken);
     return (
         <SidebarProvider className=''>
             <AppSidebar user={user} />

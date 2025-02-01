@@ -141,7 +141,7 @@ const Cart = () => {
             ) : (
                 <div className="bg-white shadow-md  p-6">
                     {cartItems.map((item) => (
-                        <div key={item.productId._id} className="flex items-center justify-between border-b py-4">
+                        item.productId && <div key={item.productId._id} className="flex items-center justify-between border-b py-4">
                             {/* Product Image */}
                             <img
                                 src={item.productId?.featuredImages || ''}

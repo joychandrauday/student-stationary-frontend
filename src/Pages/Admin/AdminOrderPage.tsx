@@ -31,9 +31,11 @@ const AdminOrderPage = () => {
     };
     const handleDeleteOrder = async (id: string) => {
         const res = await deleteOrder(id)
-        console.log(res);
-        toast.success('Deleted order successfully!');
-        refetch()
+        console.log(res)
+        if (res) {
+            toast.success('Deleted order successfully!');
+            refetch()
+        }
     }
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div>Error loading orders!</div>;

@@ -54,7 +54,6 @@ const AdminReport = () => {
     const { data: orders } = useAllOrdersQuery<useAllOrdersQuery>(dateFilter || {});
 
     const { data: users } = useGetUsersQuery<useAllUsersQuery>({});
-    console.log(dateFilter);
     // Sales data for the chart (Dynamic sales data based on the orders)
 
     const lastFourMonths = Array.from({ length: 4 }, (_, i) =>

@@ -30,7 +30,7 @@ const TopRated = () => {
     };
 
     const { data: products = [], refetch } = useGetProductsQuery<useAllProductssQuery>({});
-    console.log(products);
+
     const productF = products.filter((product) => product.rating != undefined && product.rating >= 4);
     const handleAddToCart = (product: IProduct) => {
         addToCart(product, user, updateProduct, updateUser, refetch);

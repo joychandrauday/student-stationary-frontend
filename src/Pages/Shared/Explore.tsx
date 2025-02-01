@@ -32,7 +32,6 @@ const Explore = () => {
     useEffect(() => {
         if (queryParams) {
             const searchTermParam = queryParams.get("search");
-            console.log(searchTermParam);
             if (searchTermParam) {
                 setFilters((prev) => ({
                     ...prev,

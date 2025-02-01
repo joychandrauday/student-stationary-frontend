@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { Marquee } from '@/components/ui/marquee';
 import { IProduct, IUser, ProductUpdate, useSingleProductQuery, IReview } from '@/Interfaces/types';
@@ -69,7 +70,6 @@ const SingleProduct = () => {
                 toast.error('Something went wrong!');
             }
         } catch (error) {
-            console.log(error);
             toast.error('Payment initiation failed!');
         }
 

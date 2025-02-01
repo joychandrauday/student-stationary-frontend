@@ -30,7 +30,7 @@ const OnSale = () => {
 
 
     const { data: products = [], refetch } = useGetProductsQuery<useAllProductssQuery>({});
-    console.log(products);
+
     const productF = products.filter((product) => product.status === 'sale' || (product.discount && product.discount >= 50));
     const handleAddToCart = (product: IProduct) => {
         addToCart(product, user, updateProduct, updateUser, refetch);

@@ -29,7 +29,7 @@ const Featured = () => {
 
 
     const { data: products = [], refetch } = useGetProductsQuery<useAllProductssQuery>({});
-    console.log(products);
+
     const productF = products.filter((product) => product.status === 'featured');
     const handleAddToCart = (product: IProduct) => {
         addToCart(product, user, updateProduct, updateUser, refetch);

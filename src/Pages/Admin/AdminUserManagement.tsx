@@ -23,9 +23,10 @@ const AdminUserManagement = () => {
         if (result.isConfirmed) {
             try {
                 const res = await deleteUser(userId).unwrap();
-                console.log(res);
-                Swal.fire("Deleted!", "User has been deleted.", "success");
-                refetch();
+                if (res) {
+                    Swal.fire("Deleted!", "User has been deleted.", "success");
+                    refetch();
+                }
             } catch (error) {
                 Swal.fire("Error!", "Failed to delete user.", "error");
             }

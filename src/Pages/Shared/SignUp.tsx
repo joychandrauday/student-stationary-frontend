@@ -30,7 +30,6 @@ const SignUp: React.FC<signProps> = ({ setShowModal }) => {
         e.preventDefault();
         try {
             const response = await register(formData).unwrap();
-            console.log(response);
             if (response.success) {
                 setShowModal(false);
                 toast.success('Sign Up Successfully!!')

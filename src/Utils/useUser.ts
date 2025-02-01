@@ -31,7 +31,6 @@ const useUser = (email: string | undefined) => {
 
         fetchUser();
     }, []); // Refetch when userEmail changes
-    console.log(user);
 
     return {
         user,

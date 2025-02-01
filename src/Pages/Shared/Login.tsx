@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useLoginMutation } from '@/Redux/features/auth/authApi';
 import { setUser } from '@/Redux/features/auth/authSlice';
 import { useAppDispatch } from '@/Redux/features/hook';
@@ -44,7 +45,6 @@ const Login: React.FC<LoginProps> = ({ setShowModal, refetch }) => {
             }
         } catch (error) {
             toast.error("Login failed! Please check your credentials.");
-            console.log(error);
         }
     };
 
