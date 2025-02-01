@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FaBox, FaUsers, FaShoppingCart } from "react-icons/fa"; // Importing icons
 import { useGetProductsQuery } from "@/Redux/features/product/productApi";
@@ -50,15 +50,15 @@ const AdminDashboard = () => {
             {/* Dashboard Header */}
             <header className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-                <Button variant="default">View Reports</Button>
+                <a href={'/admin/reports'} className="bg-primary px-2 py-1 text-white hover:bg-primary-foreground rounded-none hidden md:block" > View Reports</a>
             </header>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {summaryData.map((item, index) => (
-                    <Card key={index} className="shadow-md">
+                    <Card key={index} className="shadow-md rounded-none cursor-pointer hover:shadow-lg text-center">
                         <CardHeader>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2 justify-center ">
                                 {item.icon}
                                 <CardTitle>{item.title}</CardTitle>
                             </div>
@@ -71,43 +71,48 @@ const AdminDashboard = () => {
             </div>
 
             {/* Recent Orders */}
-            <div className="shadow-md p-4 bg-white rounded-lg">
+            <div className="shadow-md p-4 bg-white overflow-hidden">
                 <h2 className="text-xl font-bold mb-4">Recent Orders</h2>
-                <table className="min-w-full table-auto">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="px-4 py-2 text-left">Order ID</th>
-                            <th className="px-4 py-2 text-left">Customer</th>
-                            <th className="px-4 py-2 text-left">Total</th>
-                            <th className="px-4 py-2 text-left">Date</th>
-                            <th className="px-4 py-2 text-left">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {recentOrders.map((order: { id: string; customer: string; total: number; date: string; status: string }) => (
-                            <tr key={order.id} className="border-b">
-                                <td className="px-4 py-2">{order.id}</td>
-                                <td className="px-4 py-2">{order.customer}</td>
-                                <td className="px-4 py-2">{order.total}</td>
-                                <td className="px-4 py-2">{order.date}</td>
-                                <td className="px-4 py-2">
-                                    <span
-                                        className={`px-2 py-1 rounded-lg text-sm ${order.status === "Completed"
-                                            ? "bg-green-200 text-green-800"
-                                            : order.status === "Pending"
-                                                ? "bg-yellow-200 text-yellow-800"
-                                                : "bg-red-200 text-red-800"
-                                            }`}
-                                    >
-                                        {order.status}
-                                    </span>
-                                </td>
+
+                {/* Responsive Wrapper */}
+                <div className="overflow-x-auto">
+                    <table className="min-w-max w-full table-auto">
+                        <thead>
+                            <tr className="bg-gray-100">
+                                <th className="px-4 py-2 text-left">Order ID</th>
+                                <th className="px-4 py-2 text-left">Customer</th>
+                                <th className="px-4 py-2 text-left">Total</th>
+                                <th className="px-4 py-2 text-left">Date</th>
+                                <th className="px-4 py-2 text-left">Status</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {recentOrders.map((order: { id: string; customer: string; total: number; date: string; status: string }) => (
+                                <tr key={order.id} className="border-b hover:bg-gray-50 transition">
+                                    <td className="px-4 py-2 whitespace-nowrap">{order.id}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap">{order.customer}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap">৳{order.total}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap">{order.date}</td>
+                                    <td className="px-4 py-2 whitespace-nowrap">
+                                        <span
+                                            className={`px-2 py-1 rounded-lg text-sm ${order.status === "Completed"
+                                                ? "bg-green-200 text-green-800"
+                                                : order.status === "Pending"
+                                                    ? "bg-yellow-200 text-yellow-800"
+                                                    : "bg-red-200 text-red-800"
+                                                }`}
+                                        >
+                                            {order.status}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+
+        </div >
     );
 };
 

@@ -1,3 +1,4 @@
+import { useAllOrdersQuery } from '@/Interfaces/types';
 import { useGetUserOrdersQuery } from '@/Redux/features/order/orderApi';
 import useUser from '@/Utils/useUser';
 import { FaBox, FaShoppingCart, FaClipboardList, FaCalendarAlt } from 'react-icons/fa';
@@ -5,7 +6,7 @@ import { FaBox, FaShoppingCart, FaClipboardList, FaCalendarAlt } from 'react-ico
 const UserDashboard = () => {
     const { user, isLoading: userLoading, error: userError } = useUser(undefined) as { user: { _id: string, avatar: string, name: string, cart?: { id: string, quantity: number }[] } | null, isLoading: boolean, error: Error | null };
     const userId = user?._id ?? '';
-    const { data: orders, isLoading: ordersLoading, error: ordersError } = useGetUserOrdersQuery(userId, {
+    const { data: orders, isLoading: ordersLoading, error: ordersError } = useGetUserOrdersQuery<useAllOrdersQuery>(userId, {
         skip: !userId,
     });
 
@@ -25,7 +26,7 @@ const UserDashboard = () => {
 
     return (
         <div>
-            <div className="bg-white shadow-lg p-6 flex flex-col items-center space-y-4 basis-1/3">
+            <div className="bg-white shadow-lg p-6 flex flex-col items-center space-y-4 md:basis-1/3">
                 <img
                     src={user.avatar}
                     alt="User Profile"
@@ -36,8 +37,8 @@ const UserDashboard = () => {
             </div>
 
             {/* Dashboard Stats */}
-            <div className="bg-white shadow-lg justify-between mx-auto p-6 flex w-2/3 gap-12">
-                <div className="flex items-center justify-between gap-4">
+            <div className="bg-white shadow-lg justify-between mx-auto p-6 flex flex-col md:flex-row gap-6 md:gap-12">
+                <div className="flex items-center gap-4">
                     <FaClipboardList className="text-blue-500 text-3xl" />
                     <div>
                         <h3 className="text-xl font-semibold text-gray-800">Total Orders</h3>
@@ -60,14 +61,15 @@ const UserDashboard = () => {
                     </div>
                 </div>
             </div>
+
             {/* Recent Orders */}
             <div className="bg-white shadow-lg rounded-lg p-6">
                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recent Orders</h2>
                 <div className="space-y-4">
-                    {orders.map((order: { id: string, orderDate: string, amount: number, orderStatus: string }) => (
-                        <div key={order.id} className="flex justify-between items-center border-b pb-4">
+                    {orders.slice(0, 5).map((order) => (
+                        <div key={order._id} className="flex justify-between items-center border-b pb-4">
                             <div>
-                                <p className="text-lg text-gray-800">Order #{order.id}</p>
+                                <p className="text-lg text-gray-800">Order #{order.transaction.id}</p>
                                 <p className="text-sm text-gray-500">
                                     <FaCalendarAlt className="inline-block mr-1" />
                                     {new Date(order.orderDate).toLocaleDateString()}
@@ -76,7 +78,10 @@ const UserDashboard = () => {
                             <div className="text-right">
                                 <p className="text-lg font-semibold text-gray-800">{order.amount} ৳</p>
                                 <p className={`text-sm font-semibold ${order.orderStatus === 'Delivered' ? 'text-green-500' : order.orderStatus === 'Shipped' ? 'text-blue-500' : 'text-red-500'}`}>
-                                    {order.orderStatus}
+                                    order: {order.orderStatus}
+                                </p>
+                                <p className={`text-sm font-semibold ${order.orderStatus === 'Delivered' ? 'text-green-500' : order.paymentStatus === 'Completed' ? 'text-blue-500' : 'text-red-500'}`}>
+                                    payment: {order.paymentStatus}
                                 </p>
                             </div>
                         </div>
@@ -84,6 +89,7 @@ const UserDashboard = () => {
                 </div>
             </div>
         </div>
+
     );
 }
 

@@ -62,7 +62,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal, refetch }) => {
                         id="email"
                         {...register('email', { required: 'Email is required' })}
                         placeholder="Enter your email"
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                        className="w-full p-3 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
                     />
                     {errors.email && <p className="text-red-500 text-sm">Enter valid email</p>}
                 </div>
@@ -77,7 +77,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal, refetch }) => {
                         id="password"
                         {...register('password', { required: 'Password is required' })}
                         placeholder="Enter your password"
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-3 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
                     />
                     {errors.password && <p className="text-red-500 text-sm">Enter valid password</p>}
                 </div>

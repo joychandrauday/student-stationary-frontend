@@ -122,25 +122,29 @@ const AdminManageProduct = () => {
     if (error) return <p>Error fetching products.</p>;
 
     return (
-        <div className="max-w-7xl mx-auto rounded-none p-6">
+        <div className="max-w-7xl mx-auto rounded-none md:p-6">
             <Card className="shadow-lg">
                 <CardHeader>
-                    <CardTitle className="text-3xl font-bold text-center">Manage Products</CardTitle>
+                    <CardTitle className="text-3xl font-bold text-center mb-4">Manage Products</CardTitle>
+
                     {/* Search and Filter Section */}
-                    <div className="flex items-center justify-between mb-6 bg-primary p-4 ">
-                        <div className="flex space-x-4">
+                    <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-4 bg-primary p-4 rounded-none">
+
+                        {/* Filters - Search & Select Options */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-1">
                             {/* Search Input */}
                             <Input
                                 type="text"
                                 placeholder="Search by product name..."
-                                className="w-1/4 bg-primary-foreground text-white border-none focus:ring-2 focus:ring-primary"
+                                className="w-full bg-primary-foreground text-white rounded-none border-none focus:ring-2 focus:ring-primary"
                                 value={searchTerm}
                                 onChange={handleFilterChange}
                                 name="searchTerm"
                             />
+
                             {/* Category Filter */}
                             <select
-                                className="select select-bordered w-1/4 bg-primary-foreground text-white border-none focus:ring-2 focus:ring-primary"
+                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
                                 value={categoryFilter}
                                 onChange={handleFilterChange}
                                 name="categoryFilter"
@@ -152,9 +156,10 @@ const AdminManageProduct = () => {
                                     </option>
                                 ))}
                             </select>
+
                             {/* In Stock Filter */}
                             <select
-                                className="select select-bordered w-1/4 bg-primary-foreground text-white border-none focus:ring-2 focus:ring-primary"
+                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
                                 value={inStockFilter}
                                 onChange={handleFilterChange}
                                 name="inStockFilter"
@@ -163,9 +168,10 @@ const AdminManageProduct = () => {
                                 <option value="inStock">In Stock</option>
                                 <option value="outOfStock">Out of Stock</option>
                             </select>
+
                             {/* Sort By Filter */}
                             <select
-                                className="select select-bordered w-1/4 bg-primary-foreground text-white border-none focus:ring-2 focus:ring-primary"
+                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
                                 value={sortBy}
                                 onChange={handleFilterChange}
                                 name="sortBy"
@@ -173,9 +179,10 @@ const AdminManageProduct = () => {
                                 <option value="name">Sort by Name</option>
                                 <option value="price">Sort by Price</option>
                             </select>
+
                             {/* Sort Order Filter */}
                             <select
-                                className="select select-bordered w-1/4 bg-primary-foreground text-white border-none focus:ring-2 focus:ring-primary"
+                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
                                 value={sortOrder}
                                 onChange={handleFilterChange}
                                 name="sortOrder"
@@ -186,8 +193,8 @@ const AdminManageProduct = () => {
                         </div>
 
                         {/* Price Range Slider */}
-                        <div className="flex items-center flex-col mx-4 mt-4">
-                            <span className="text-white">Min Range: {minPrice} BDT</span>
+                        <div className="flex flex-col items-center w-full md:w-1/4">
+                            <span className="text-white">Min: {minPrice} BDT</span>
                             <input
                                 type="range"
                                 min="0"
@@ -206,12 +213,12 @@ const AdminManageProduct = () => {
                                 onChange={(e) => setFilters((prev) => ({ ...prev, maxPrice: Number(e.target.value) }))}
                                 className="w-full bg-primary-foreground text-white focus:ring-2 focus:ring-primary"
                             />
-                            <span className="text-white">Max Price: {maxPrice} BDT</span>
+                            <span className="text-white">Max: {maxPrice} BDT</span>
                         </div>
+
                     </div>
-
-
                 </CardHeader>
+
                 <CardContent>
                     <Table className="w-full border">
                         <TableHeader>

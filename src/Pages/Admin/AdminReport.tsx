@@ -1,13 +1,14 @@
-import { FaChartPie, FaFileAlt, FaUsers, FaShoppingCart } from 'react-icons/fa';
+import { FaChartPie, FaUsers, FaShoppingCart } from 'react-icons/fa';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 import { useAllOrdersQuery } from '@/Redux/features/order/orderApi';
-import { useGetProductsQuery } from '@/Redux/features/product/productApi';
+import { subMonths, format } from "date-fns";
 import { useGetUsersQuery } from '@/Redux/features/user/userApi';
-import { IOrder, useAllProductssQuery, useAllUsersQuery } from '@/Interfaces/types';
+import { IOrder, useAllUsersQuery } from '@/Interfaces/types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import logo from '../../assets/studentstationarylogonav.png'
+import logo from '../../assets/studentstationarylogo.png'
+import { useState } from 'react';
 
 // Registering Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
@@ -17,24 +18,71 @@ interface useAllOrdersQuery {
     error: boolean;
 }
 const AdminReport = () => {
-    // Fetch data
-    const { data: users, isLoading: usersLoading } = useGetUsersQuery<useAllUsersQuery>({});
-    const { data: products, isLoading: productsLoading } = useGetProductsQuery<useAllProductssQuery>({});
-    const { data: orders, isLoading: ordersLoading } = useAllOrdersQuery<useAllOrdersQuery>({});
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // ✅ Optional, but useful for initial load
+    const [selectedMonth, setSelectedMonth] = useState<number | "all">(currentMonth);
 
+    const getMonthStartAndEndDate = (year: number, month: number) => {
+        return {
+            startDate: new Date(year, month - 1, 1).toISOString().split("T")[0],
+            endDate: new Date(year, month, 0).toISOString().split("T")[0],
+        };
+    };
+
+    const dateFilter =
+        selectedMonth === "all"
+            ? undefined
+            : getMonthStartAndEndDate(currentYear, selectedMonth);
+
+
+    const monthNames: Record<number, string> = {
+        1: "January",
+        2: "February",
+        3: "March",
+        4: "April",
+        5: "May",
+        6: "June",
+        7: "July",
+        8: "August",
+        9: "September",
+        10: "October",
+        11: "November",
+        12: "December",
+    };
+
+    // API Call
+    const { data: orders } = useAllOrdersQuery<useAllOrdersQuery>(dateFilter || {});
+
+    const { data: users } = useGetUsersQuery<useAllUsersQuery>({});
+    console.log(dateFilter);
     // Sales data for the chart (Dynamic sales data based on the orders)
+
+    const lastFourMonths = Array.from({ length: 4 }, (_, i) =>
+        format(subMonths(new Date(), i), "MMMM")
+    ).reverse();
+
+    // গত ৪ মাসের sales data বের করা
+    const filteredSalesData = lastFourMonths.map(month => {
+        const monthlyOrders = orders?.filter(order =>
+            format(new Date(order.orderDate), "MMMM") === month
+        );
+        return monthlyOrders?.reduce((sum, order) => sum + order.amount, 0) || 0;
+    });
+
+    // salesData আপডেট
     const salesData = {
-        labels: ['January', 'February', 'March', 'April', 'May'],
+        labels: lastFourMonths,
         datasets: [
             {
                 label: 'Sales Overview',
-                data: orders ? orders.map(order => order.amount) : [0, 0, 0, 0, 0], // Dynamically using order amounts
+                data: filteredSalesData,
                 borderColor: 'rgba(75,192,192,1)',
                 backgroundColor: 'rgba(75,192,192,0.2)',
                 tension: 0.4,
             },
         ],
     };
+
 
     // Top-selling products logic
     const topSellingProducts = orders?.reduce((acc: { [key: string]: unknown }, order) => {
@@ -57,6 +105,7 @@ const AdminReport = () => {
         quantity: number;
         price: number;
         productId: {
+            name: string;
             _id: string;
             featuredImages: string;
         }
@@ -80,143 +129,142 @@ const AdminReport = () => {
 
         doc.addImage(logo, 'PNG', 160, 10, 45, 13);
         doc.setFontSize(18);
-        doc.text('Admin Sales Report', 14, 15);
+        doc.text(`Admin Sales Report(${selectedMonth === "all" ? "All Months" : monthNames[selectedMonth]})`, 14, 15);
 
-        const totalSales = orders.reduce((total, order) => total + order.amount, 0) || 0;
+        const totalSales = orders.reduce((total: number, order: IOrder) => total + order.amount, 0) || 0;
         const totalUsers = users.length || 0;
         const totalOrders = orders.length || 0;
 
         doc.setFontSize(12);
-        doc.text(`Total Sales: ৳${totalSales}`, 14, 25);
+        doc.text(`Total Sales: Taka ${totalSales}`, 14, 25);
         doc.text(`Total Users: ${totalUsers}`, 14, 32);
         doc.text(`Total Orders: ${totalOrders}`, 14, 39);
 
+        let finalY = 45;
+
         autoTable(doc, {
-            startY: 45,
-            head: [['Order ID', 'Amount (৳)', 'Date']],
-            body: orders.map(order => [order._id, order.amount, new Date(order.createdAt).toLocaleDateString()]) || [],
+            startY: finalY,
+            head: [['Order ID', 'Amount (taka)', 'Date']],
+            body: orders.map(order => [order.transaction.id, order.amount, new Date(order.createdAt).toLocaleDateString()]) || [],
+            didDrawPage: (data) => {
+                if (data.cursor) {
+                    finalY = data.cursor.y;
+                }
+            }
         });
 
-        doc.text('Top Selling Products:', 14, doc.lastAutoTable.finalY + 10);
+        doc.text('Top Selling Products:', 14, finalY + 10);
+
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 15,
+            startY: finalY + 15,
             head: [['Product Name', 'Quantity Sold', 'Price (৳)']],
             body: sortedTopSelling.map(product => [product.productId.name, product.quantity, product.price]) || [],
         });
 
         doc.save('Admin_Sales_Report.pdf');
     };
+
+
     return (
-        <div className="p-6 bg-gray-900 text-white min-h-screen space-y-6">
+        <div className="p-6 min-h-screen space-y-6 bg-white text-black">
             {/* Page Header */}
-            <header className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold text-blue-400">Admin Reports</h1>
+            <header className="flex justify-between md:items-center mb-6">
+                <h1 className="text-3xl font-bold text-primary">Admin Reports</h1>
+                <div className="wrap">
+                    <div className="mb-4">
+                        <div className="wrap">
+                            <label className="block mb-2 font-medium text-gray-300">Select Month:</label>
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) =>
+                                    setSelectedMonth(e.target.value === "all" ? "all" : Number(e.target.value))
+                                }
+                                className="border border-gray-500 p-2   py-2 px-4 mr-2 text-primary hover:bg-primary hover:text-white"
+                            >
+                                <option value="all">All Orders</option>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                    <option key={month} value={month}>
+                                        {new Date(currentYear, month - 1).toLocaleString("default", {
+                                            month: "long",
+                                        })}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <button
+                            onClick={generatePDF}
+                            className="bg-primary hover:bg-gray-600 text-white py-2 px-4 ">
+                            Download Report
+                        </button>
+                    </div>
+                </div>
             </header>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-gray-800 p-6 rounded-lg shadow-md flex items-center">
-                    <FaChartPie size={30} className="text-blue-500 mr-4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-transparent text-primary hover:shadow-lg hover:border cursor-pointer p-6  shadow-md flex items-center">
+                    <FaChartPie size={30} className="text-primary mr-4" />
                     <div>
-                        <p className="text-gray-400">Total Sales</p>
-                        <h2 className="text-xl font-bold">৳{orders ? orders.reduce((total, order) => total + order.amount, 0) : '0'}</h2> {/* Total revenue calculation */}
+                        <p className="text-primary">Total Sales</p>
+                        <h2 className="text-xl font-bold text-primary">৳{orders ? orders.reduce((total, order) => total + order.amount, 0) : '0'}</h2>
                     </div>
                 </div>
-                <div className="bg-gray-800 p-6 rounded-lg shadow-md flex items-center">
-                    <FaUsers size={30} className="text-green-500 mr-4" />
+                <div className="bg-transparent text-primary hover:shadow-lg hover:border cursor-pointer p-6  shadow-md flex items-center">
+                    <FaUsers size={30} className="text-primary mr-4" />
                     <div>
-                        <p className="text-gray-400">Total Users</p>
-                        <h2 className="text-xl font-bold">{users?.length}</h2>
+                        <p className="text-primary">Total Users</p>
+                        <h2 className="text-xl font-bold text-primary">{users?.length}</h2>
                     </div>
                 </div>
-                <div className="bg-gray-800 p-6 rounded-lg shadow-md flex items-center">
-                    <FaShoppingCart size={30} className="text-yellow-500 mr-4" />
+                <div className="bg-transparent text-primary hover:shadow-lg hover:border cursor-pointer p-6  shadow-md flex items-center">
+                    <FaShoppingCart size={30} className="text-primary mr-4" />
                     <div>
-                        <p className="text-gray-400">Orders</p>
-                        <h2 className="text-xl font-bold">{orders?.length}</h2>
-                    </div>
-                </div>
-                <div className="bg-gray-800 p-6 rounded-lg shadow-md flex items-center">
-                    <FaFileAlt size={30} className="text-red-500 mr-4" />
-                    <div>
-                        <p className="text-gray-400">Pending Reports</p>
-                        <h2 className="text-xl font-bold">8</h2>
+                        <p className="text-primary">Orders</p>
+                        <h2 className="text-xl font-bold text-primary">{orders?.length}</h2>
                     </div>
                 </div>
             </div>
 
             {/* Chart Section */}
-            <div className="bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-blue-400 mb-4">Sales Overview</h2>
-                <div className="h-64 bg-gray-700 rounded-lg flex justify-center items-center">
-                    {ordersLoading || usersLoading || productsLoading ? (
-                        <p>Loading...</p>
-                    ) : (
-                        <Line data={salesData} options={chartOptions} />
-                    )}
+            <div className="shadow-md p-6">
+                <h2 className="text-xl font-bold text-primary mb-4">Sales Overview</h2>
+                <div className="h-64 bg-gray-800 flex justify-center items-center">
+
+                    <Line data={salesData} options={chartOptions} />
                 </div>
             </div>
-
             {/* Top Selling Products */}
-            <div className="bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-blue-400 mb-4">Top Selling Products</h2>
+            <div className="bg-white  shadow-md p-6">
+                <h2 className="text-xl font-bold text-primary mb-4">Top Selling Products</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {sortedTopSelling?.slice(0, 5).map((product) => (
-                        <div key={product._id} className="bg-gray-700 p-4 rounded-lg shadow-md">
-                            <img src={product?.productId.featuredImages} alt={product.name} className="w-full h-40 object-cover rounded-md" />
-                            <h3 className="text-lg font-semibold text-gray-200 mt-4">{product.name}</h3>
-                            <p className="text-gray-400">Quantity Sold: {product.quantity}</p>
-                            <p className="text-xl font-bold text-blue-400 mt-2">৳{product.price}</p>
+                        <div
+                            key={product._id}
+                            className="relative bg-gray-700 bg-opacity-20 p-4 backdrop-blur-lg shadow-lg border border-white/10 cursor-pointer overflow-hidden group"
+                        >
+                            {/* Shining Effect */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="absolute -top-1/2 left-1/2 w-40 h-40 bg-white/80 rotate-45 blur-lg transition-transform duration-700 group-hover:translate-x-32 group-hover:translate-y-32"></div>
+                            </div>
+
+                            <img
+                                src={product?.productId.featuredImages}
+                                alt={product.name}
+                                className="w-full h-40 object-cover rounded-md"
+                            />
+                            <h3 className="text-lg font-semibold text-primary mt-4">{product.productId.name}</h3>
+                            <p className="text-primary">Quantity Sold: {product.quantity}</p>
+                            <p className="text-xl font-bold text-primary mt-2">৳{product.price}</p>
                         </div>
+
+
                     ))}
                 </div>
             </div>
 
-            {/* Product Section */}
-            <div className="bg-gray-800 rounded-lg shadow-md p-6">
-                <h2 className="text-xl font-bold text-blue-400 mb-4">Products</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products?.map((product) => (
-                        <div key={product._id} className="bg-gray-700 p-4 rounded-lg shadow-md">
-                            <img src={product?.featuredImages} alt={product.name} className="w-full h-40 object-cover rounded-md" />
-                            <h3 className="text-lg font-semibold text-gray-200 mt-4">{product.name}</h3>
-                            <p className="text-gray-400">{product.description}</p>
-                            <p className="text-xl font-bold text-blue-400 mt-2">৳{product.price}</p>
-                        </div>
-                    ))}
-                </div>
-            </div>
 
-            {/* Detailed Reports Table */}
-            <div className="bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-blue-400 mb-4">Admin Reports</h2>
-            <button 
-                onClick={generatePDF}
-                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md mb-4">
-                Download Report (PDF)
-            </button>
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-gray-700 text-gray-300">
-                            <th className="py-4 px-4">Order ID</th>
-                            <th className="py-4 px-4">Amount (৳)</th>
-                            <th className="py-4 px-4">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {orders?.map(order => (
-                            <tr key={order._id} className="border-b border-gray-700">
-                                <td className="py-4 px-4">{order._id}</td>
-                                <td className="py-4 px-4">৳{order.amount}</td>
-                                <td className="py-4 px-4">{new Date(order.createdAt).toLocaleDateString()}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
         </div>
-        </div>
+
     );
 };
 

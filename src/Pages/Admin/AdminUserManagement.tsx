@@ -55,7 +55,7 @@ const AdminUserManagement = () => {
             {isLoading && <p className="text-center text-lg">Loading users...</p>}
             {error && <p className="text-center text-red-500">Failed to load users.</p>}
 
-            <div className="overflow-x-auto shadow-md rounded-lg">
+            <div className="overflow-x-auto shadow-md rounded-none">
                 <table className="min-w-full table">
                     <thead>
                         <tr>

@@ -16,15 +16,19 @@ const UserProfileDetails = () => {
     const { user, isLoading } = useUser(undefined) as { user: User | null, isLoading: boolean };
 
     // Set state for editing avatar
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditingAvatar, setIsEditingAvatar] = useState(false);
     const [newAvatarUrl, setNewAvatarUrl] = useState("");
 
-    // Mutation to update the user's avatar
+    // Set state for editing name
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [newName, setNewName] = useState(user?.name || "");
+
+    // Mutation to update the user's avatar and name
     const [updateUser, { isLoading: isUpdating, error: updateError }] = useUpdateUserMutation();
 
     const handleAvatarClick = () => {
         // Toggle the avatar editing state
-        setIsEditing(!isEditing);
+        setIsEditingAvatar(!isEditingAvatar);
     };
 
     const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,37 +42,61 @@ const UserProfileDetails = () => {
             return;
         }
 
-        const updatedData = {
-
-            avatar: newAvatarUrl,
-        }
+        const updatedData = { avatar: newAvatarUrl };
         if (newAvatarUrl) {
-            // Update the avatar URL using the mutation
             try {
                 await updateUser({ userId: user._id, updatedData }).unwrap();
-                setIsEditing(false); // Close the form after successful update
+                setIsEditingAvatar(false); // Close the form after successful update
                 window.location.reload();
-
             } catch (error) {
                 console.error("Error updating avatar:", error);
             }
         }
     };
 
+    const handleNameClick = () => {
+        // Toggle the name editing state
+        setIsEditingName(!isEditingName);
+    };
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewName(e.target.value);
+    };
+
+    const handleNameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!user || !newName) {
+            console.error("User or name is null or undefined");
+            return;
+        }
+
+        const updatedData = { name: newName };
+        try {
+            await updateUser({ userId: user._id, updatedData }).unwrap();
+            setIsEditingName(false); // Close the form after successful update
+            window.location.reload();
+        } catch (error) {
+            console.error("Error updating name:", error);
+        }
+    };
+
     if (isLoading) return <div>Loading profile...</div>;
     if (updateError) return <div>Error loading profile!</div>;
     if (!user) {
-        return <div>User not found.</div>; // This handles the case when user is null or undefined
+        return <div>User not found.</div>;
     }
-    return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-semibold mb-6">Profile Details</h1>
 
-            <div className="bg-white shadow-lg rounded-lg p-6 flex flex-col items-center">
+    return (
+        <div className="max-w-4xl mx-auto p-4 sm:p-6">
+            <h1 className="text-2xl sm:text-3xl font-semibold mb-4 sm:mb-6 text-center sm:text-left">
+                Profile Details
+            </h1>
+
+            <div className="bg-white shadow-lg rounded-none p-4 sm:p-6 flex flex-col items-center">
                 {/* Profile Picture */}
                 <div
                     onClick={handleAvatarClick}
-                    className="w-32 h-32 rounded-full mb-4 object-cover cursor-pointer"
+                    className="w-24 h-24 sm:w-32 sm:h-32 rounded-full mb-3 sm:mb-4 object-cover cursor-pointer"
                 >
                     {user.avatar ? (
                         <img
@@ -77,41 +105,70 @@ const UserProfileDetails = () => {
                             className="w-full h-full rounded-full object-cover"
                         />
                     ) : (
-                        <FaUserCircle size={128} className="text-gray-500" />
+                        <FaUserCircle size={96} className="text-gray-500 sm:size-128" />
                     )}
                 </div>
 
                 {/* Avatar Update Form */}
-                {isEditing && (
-                    <form onSubmit={handleAvatarSubmit} className="flex flex-col items-center">
+                {isEditingAvatar && (
+                    <form onSubmit={handleAvatarSubmit} className="flex flex-col items-center w-full">
                         <input
                             type="url"
                             placeholder="Enter Avatar URL"
                             value={newAvatarUrl}
                             onChange={handleAvatarUrlChange}
-                            className="mb-4 p-2 border rounded-md"
+                            className="w-full sm:w-3/4 p-2 border rounded-md mb-3"
                             required
                         />
                         <button
                             type="submit"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+                            className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
                             disabled={isUpdating}
                         >
                             {isUpdating ? "Updating..." : "Update Avatar"}
                         </button>
                         {updateError && (
-                            <div className="text-red-500 mt-2">
+                            <div className="text-red-500 mt-2 text-center">
                                 {'status' in updateError ? `Error: ` : updateError}
                             </div>
                         )}
                     </form>
                 )}
 
-                {/* User Details */}
-                <div className="text-center mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-800">{user.name}</h2>
-                    <p className="text-gray-600">{user.email}</p>
-                    <p className="text-gray-600">{user.phone}</p>
+                {/* User Name Edit */}
+                <div className="mt-4 sm:mt-6 text-center">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
+                        {isEditingName ? (
+                            <form onSubmit={handleNameSubmit}>
+                                <input
+                                    type="text"
+                                    value={newName}
+                                    onChange={handleNameChange}
+                                    className="w-full sm:w-3/4 p-2 border rounded-md mb-3"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    className="w-full sm:w-auto px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200"
+                                    disabled={isUpdating}
+                                >
+                                    {isUpdating ? "Updating..." : "Update Name"}
+                                </button>
+                            </form>
+                        ) : (
+                            <div className="text-gray-700 font-semibold text-xl">{user.name}</div>
+                        )}
+                    </h2>
+                    {!isEditingName && (
+                        <button
+                            onClick={handleNameClick}
+                            className="text-blue-600 mt-2 hover:underline"
+                        >
+                            Edit Name
+                        </button>
+                    )}
+                    <p className="text-gray-600 text-sm sm:text-base">{user.email}</p>
+                    <p className="text-gray-600 text-sm sm:text-base">{user.phone}</p>
                 </div>
             </div>
         </div>

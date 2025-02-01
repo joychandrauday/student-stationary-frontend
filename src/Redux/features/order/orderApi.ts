@@ -18,10 +18,15 @@ const ordersApi = baseApi.injectEndpoints({
             transformResponse: (response: { message: string; success: boolean; data: any }) => response.data,
         }),
         allOrders: builder.query({
-            query: () => ({
-                url: `/orders`,
-                method: "GET",
-            }),
+            query: ({ startDate, endDate }) => {
+                const queryParams = new URLSearchParams();
+                if (startDate) queryParams.append("startDate", startDate);
+                if (endDate) queryParams.append("endDate", endDate);
+                return {
+                    url: `/orders?${queryParams.toString()}`,
+                    method: "GET",
+                };
+            },
             transformResponse: (response: { message: string; success: boolean; data: any }) => response.data,
         }),
         createOrder: builder.mutation({

@@ -6,8 +6,8 @@ import {
     FaUsers,
     FaBoxOpen,
     FaChartBar,
-    FaCog,
-    FaCreditCard,
+    // FaCog,
+    // FaCreditCard,
     FaUser,
     FaHeart,
     FaTruck,
@@ -66,11 +66,11 @@ const adminItems: AdminItem[] = [
         url: "reports",
         icon: FaChartBar,
     },
-    {
-        title: "Settings",
-        url: "settings",
-        icon: FaCog,
-    },
+    // {
+    //     title: "Settings",
+    //     url: "settings",
+    //     icon: FaCog,
+    // },
 ];
 
 const userItems: AdminItem[] = [
@@ -98,16 +98,6 @@ const userItems: AdminItem[] = [
         title: "Account Details",
         url: "account-details",
         icon: FaUser,
-    },
-    {
-        title: "Payment Methods",
-        url: "payment",
-        icon: FaCreditCard,
-    },
-    {
-        title: "Settings",
-        url: "settings",
-        icon: FaCog,
     },
 ];
 
@@ -187,7 +177,7 @@ const AppSidebar = ({ user }: AppSidebarProps) => {
                                                 <a
                                                     key={subItem.title}
                                                     href={`/${user?.role ?? "guest"}/${item.url}/${subItem.url}`}
-                                                    className={`block py-2 px-3 rounded-lg ${location.pathname ===
+                                                    className={`block py-2 px-3 rounded-none ${location.pathname ===
                                                         `/${user?.role ?? "guest"}/${item.url}/${subItem.url}`
                                                         ? "bg-primary text-white"
                                                         : "hover:bg-primary hover:text-white"
@@ -232,8 +222,8 @@ const AppSidebar = ({ user }: AppSidebarProps) => {
                         className="w-10 h-10 rounded-full"
                     />
                     <div>
-                        <h4 className="text-md font-semibold">{user?.name ?? "Guest"}</h4>
-                        <p className="text-sm text-gray-300">{user?.role ?? "Guest"}</p>
+                        <h4 className="text-md text-white font-semibold">{user?.name ?? "Guest"}</h4>
+                        <p className="text-sm text-white">{user?.role ?? "Guest"}</p>
                     </div>
                 </div>
                 <button

@@ -77,7 +77,7 @@ const AdminAddProduct: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-6">
-            <Card className="shadow-lg rounded-2xl">
+            <Card className="shadow-lg rounded-none">
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold text-center">
                         Add New Product
@@ -97,6 +97,7 @@ const AdminAddProduct: React.FC = () => {
                                 type="text"
                                 placeholder="Enter product name"
                                 {...register("name", { required: "Product Name is required" })}
+                                className="rounded-none"
                             />
                             {errors.name && (
                                 <p className="text-sm text-red-500 mt-1">
@@ -112,6 +113,7 @@ const AdminAddProduct: React.FC = () => {
                                 type="text"
                                 placeholder="Enter brand name"
                                 {...register("brand", { required: "Brand is required" })}
+                                className="rounded-none"
                             />
                             {errors.brand && (
                                 <p className="text-sm text-red-500 mt-1">
@@ -132,6 +134,7 @@ const AdminAddProduct: React.FC = () => {
                                     required: "Price is required",
                                     valueAsNumber: true,
                                 })}
+                                className="rounded-none"
                             />
                             {errors.price && (
                                 <p className="text-sm text-red-500 mt-1">
@@ -146,7 +149,7 @@ const AdminAddProduct: React.FC = () => {
                             <div>
                                 <select
                                     {...register("category", { required: "Category is required" })}
-                                    className="w-full p-2 border rounded-md"
+                                    className="w-full p-2 border rounded-none"
                                 >
                                     <option value="">Select category</option>
                                     {categories.map((category, index) => (
@@ -179,6 +182,7 @@ const AdminAddProduct: React.FC = () => {
                                     required: "Quantity is required",
                                     valueAsNumber: true,
                                 })}
+                                className="rounded-none"
                             />
                             {errors.quantity && (
                                 <p className="text-sm text-red-500 mt-1">
@@ -198,6 +202,7 @@ const AdminAddProduct: React.FC = () => {
                                 {...register("featuredImages", {
                                     required: "Featured Image URL is required",
                                 })}
+                                className="rounded-none"
                             />
                             {errors.featuredImages && (
                                 <p className="text-sm text-red-500 mt-1">
@@ -216,6 +221,7 @@ const AdminAddProduct: React.FC = () => {
                                 {...register("description", {
                                     required: "Description is required",
                                 })}
+                                className="rounded-none"
                             />
                             {errors.description && (
                                 <p className="text-sm text-red-500 mt-1">
@@ -237,6 +243,7 @@ const AdminAddProduct: React.FC = () => {
                                         {...register(`images.${index}`, {
                                             required: "Image URL is required",
                                         })}
+                                        className="rounded-none"
                                     />
                                     <Button
                                         type="button"

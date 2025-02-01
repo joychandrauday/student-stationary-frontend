@@ -84,6 +84,7 @@ export interface IOrder {
         date_time: string,
     },
     estimatedDeliveryDate?: Date; // optional, estimated delivery date
+    createdAt: Date;
 }
 
 export interface useAllOrdersQuery {
