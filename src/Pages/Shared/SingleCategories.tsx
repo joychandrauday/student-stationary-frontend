@@ -16,19 +16,22 @@ const SingleCategories = () => {
     const [updateUser] = useUpdateUserMutation()
     const userToken = useAppSelector(useCurrentUser);
     const { user } = useUser(userToken?.email) as { user: IUser | null; isLoading: boolean; error: unknown };
+    const capitalizedCategory = category
+        ? category.charAt(0).toUpperCase() + category.slice(1)
+        : "";
+
+
 
     const [quantities, setQuantities] = useState<Record<string, number>>({});
 
     // State for filters
     const [filters] = useState({
+
         searchTerm: "",
-        categoryFilter: "",
+        categoryFilter: capitalizedCategory,
         inStockFilter: "all",
         sortBy: "",
         sortOrder: "asc",
-        page: 1,
-        minPrice: 0,
-        maxPrice: 1000,
     });
     const handleQuantityChange = (productId: string, value: string) => {
         setQuantities((prev) => ({
@@ -38,7 +41,7 @@ const SingleCategories = () => {
     };
 
     // State for quantity per product
-    const { searchTerm, categoryFilter, inStockFilter, sortBy, sortOrder, minPrice, maxPrice } = filters;
+    const { searchTerm, categoryFilter, inStockFilter, sortBy, sortOrder, } = filters;
 
 
     const inStockParam = inStockFilter === "all" ? undefined : inStockFilter === "inStock" ? true : false;
@@ -48,14 +51,11 @@ const SingleCategories = () => {
         inStock: inStockParam,
         sortBy: sortBy || undefined,
         sortOrder: sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined,
-        page: filters.page,
-        minPrice,
-        maxPrice,
     });
     const handleAddToCart = (product: IProduct) => {
         addToCart(product, user, updateProduct, updateUser, refetch);
     };
-
+    console.log(products);
     return (
         <div className="container mx-auto px-4">
             <h2 className="text-3xl font-semibold text-center my-4">Products in {category}</h2>
