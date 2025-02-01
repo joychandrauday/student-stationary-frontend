@@ -1,4 +1,4 @@
-import { useUpdateOrderMutation } from "@/Redux/features/order/orderApi";
+import { useUpdateWholeOrderMutation } from "@/Redux/features/order/orderApi";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 interface Payment {
@@ -7,7 +7,7 @@ interface Payment {
 }
 
 const useUpdatePaymentStatus = (payment: Payment) => {
-    const [updateOrder] = useUpdateOrderMutation()
+    const [updateWholeOrder] = useUpdateWholeOrderMutation()
     useEffect(() => {
         if (!payment) return;
 
@@ -17,7 +17,7 @@ const useUpdatePaymentStatus = (payment: Payment) => {
                     const updatedData = {
                         paymentStatus: payment.bank_status === "Success" ? "Completed" : "Failed",
                     };
-                    await updateOrder({ orderId: payment.customer_order_id, updatedData });
+                    await updateWholeOrder({ orderId: payment.customer_order_id, updatedData });
                     toast.success("Order updated successfully!");
                 }
             } catch (error) {
@@ -27,7 +27,7 @@ const useUpdatePaymentStatus = (payment: Payment) => {
         };
 
         updateOrderStatus();
-    }, [payment, updateOrder]);
+    }, [payment, updateWholeOrder]);
 };
 
 export default useUpdatePaymentStatus;

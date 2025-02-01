@@ -40,6 +40,14 @@ const ordersApi = baseApi.injectEndpoints({
             }),
             transformResponse: (response: { message: string; success: boolean; data: any }) => response.data,
         }),
+        updateWholeOrder: builder.mutation({
+            query: ({ orderId, updatedData }: { orderId: string; updatedData: Partial<any> }) => ({
+                url: `/orders/update/${orderId}`,
+                method: "PATCH",
+                body: updatedData,
+            }),
+            transformResponse: (response: { message: string; success: boolean; data: any }) => response.data,
+        }),
         deleteOrder: builder.mutation({
             query: (orderId: string) => ({
                 url: `/orders/${orderId}`,
@@ -69,6 +77,7 @@ export const {
     useAllOrdersQuery,
     useCreateOrderMutation,
     useUpdateOrderMutation,
+    useUpdateWholeOrderMutation,
     useDeleteOrderMutation,
     useGetUserOrdersQuery,
     useVerifyOrderQuery
