@@ -1,13 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { useUpdateOrderMutation, useVerifyOrderQuery } from '@/Redux/features/order/orderApi';
-import { useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { useVerifyOrderQuery } from '@/Redux/features/order/orderApi';
+import useUpdatePaymentStatus from '@/Utils/useUpdatePamentStatus';
 import { useSearchParams } from 'react-router-dom';
 
 const UserPayment = () => {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get("order_id");
-    const [updateOrder] = useUpdateOrderMutation();
     const { isLoading, data } = useVerifyOrderQuery(orderId, {
         refetchOnMountOrArgChange: true,
     });
@@ -20,28 +18,8 @@ const UserPayment = () => {
         return <div className="text-center text-red-500 text-lg font-semibold">No payment data found</div>;
     }
 
-    const payment = data?.data?.[0] || null; // ডেটা নিশ্চিত করা
-
-    useEffect(() => {
-        if (!payment) return; // যদি payment ডেটা না থাকে, তাহলে কিছু না করো
-
-        const updateOrderStatus = async () => {
-            try {
-                if (payment.customer_order_id) {
-                    const updatedData = {
-                        paymentStatus: payment.bank_status === "Success" ? "Completed" : "Failed",
-                    };
-                    await updateOrder({ orderId: payment.customer_order_id, updatedData });
-                    toast.success('Order updated successfully!');
-                }
-            } catch (error) {
-                console.error("Error updating order:", error);
-                toast.error('Failed to update order');
-            }
-        };
-
-        updateOrderStatus();
-    }, [payment, updateOrder]);
+    const payment = data?.data?.[0] || null;
+    useUpdatePaymentStatus(payment);
 
     return (
         <div className="max-w-3xl mx-auto p-6 border rounded-lg shadow-lg bg-white">
