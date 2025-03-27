@@ -55,7 +55,7 @@ const ProductPagination = ({ totalPage }: { totalPage: number }) => {
                 disabled={currentPage === 1}
                 variant="outline"
                 size="sm"
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
+                className="w-10 h-10 rounded-lg flex items-center text-gray-600 justify-center hover:bg-gray-200 transition-all"
             >
                 <ArrowLeft size={18} />
             </Button>
@@ -72,8 +72,8 @@ const ProductPagination = ({ totalPage }: { totalPage: number }) => {
                     }}
                     variant={currentPage === page ? "default" : "outline"}
                     size="sm"
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all 
-                      ${currentPage === page ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all 
+                      ${currentPage === page ? 'bg-primary-foreground text-white' : 'hover:bg-gray-100 text-gray-600'}`}
                 >
                     {page}
                 </Button>
@@ -84,7 +84,7 @@ const ProductPagination = ({ totalPage }: { totalPage: number }) => {
                 disabled={currentPage === totalPage}
                 variant="outline"
                 size="sm"
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-all"
             >
                 <ArrowRight size={18} />
             </Button>

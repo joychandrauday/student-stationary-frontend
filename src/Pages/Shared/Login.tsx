@@ -22,7 +22,13 @@ interface LoginFormData {
 
 const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     const dispatch = useAppDispatch();
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>(); // ✅ Corrected type here
+    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    });
+
     const [login] = useLoginMutation();
     const location = useLocation();
     const navigate = useNavigate();
@@ -30,7 +36,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     // Retrieve the desired route from the location state or fallback to "/"
     const from = location.state?.from?.pathname || "/";
 
-    const onSubmit = async (logInInfo: LoginFormData) => { // ✅ Corrected type here
+    const onSubmit = async (logInInfo: LoginFormData) => {
         try {
             const res = await login(logInInfo).unwrap();
             if (res.data.accessToken) {
@@ -39,8 +45,6 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                 toast.success('Login successful!!');
                 setShowModal(false);
                 navigate(from, { replace: true });
-
-                // Call refetch if provided
             }
         } catch (error) {
             toast.error("Login failed! Please check your credentials.");
@@ -91,6 +95,31 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                     </button>
                 </div>
             </form>
+
+            {/* Quick Login Buttons */}
+            <div className="mt-4 flex justify-between">
+                <button
+                    type="button"
+                    onClick={() => {
+                        // Set default user credentials
+                        (document.getElementById("email") as HTMLInputElement).value = "user@3.com";
+                        (document.getElementById("password") as HTMLInputElement).value = "123456";
+                    }}
+                    className="text-blue-500 underline"
+                >
+                    Login as User
+                </button>
+                <button
+                    type="button"
+                    onClick={() => {
+                        (document.getElementById("email") as HTMLInputElement).value = "test@admin.com";
+                        (document.getElementById("password") as HTMLInputElement).value = "aaaaaa";
+                    }}
+                    className="text-red-500 underline"
+                >
+                    Login as Admin
+                </button>
+            </div>
         </div>
     );
 };

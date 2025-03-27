@@ -2,7 +2,7 @@
 import FilterSidebar from "@/pageComponent/product/ProductFilter";
 import ProductPagination from "@/pageComponent/product/ProductPagination";
 import { useGetProductsQuery } from "@/Redux/features/product/productApi";
-import { useSearchParams } from "react-router-dom";
+import { ScrollRestoration, useSearchParams } from "react-router-dom";
 import loader from '../../assets/loader2.gif'; // Assuming you have the loader image
 import ProductCard from "@/pageComponent/product/ProductCard";
 
@@ -64,7 +64,7 @@ const AllProducts = () => {
                         <p className="text-center text-red-600">Something went wrong while fetching the products.</p>
                     )}
 
-                    {!isLoading && !isError && (
+                    {meta?.totalCount === 0 && (
                         <p className="text-center text-gray-600">No products found.</p>
                     )}
 
@@ -82,6 +82,7 @@ const AllProducts = () => {
                     <ProductPagination totalPage={Number(totalPages)} />
                 </div>
             </div>
+            <ScrollRestoration />
         </div>
     );
 };

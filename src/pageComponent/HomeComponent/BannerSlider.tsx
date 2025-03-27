@@ -46,7 +46,7 @@ const BannerSlider: React.FC = () => {
                         <p className="text-md sm:text-lg text-white mt-4 drop-shadow-md">
                             Everything you need for your office and study space.
                         </p>
-                        <button onClick={() => navigate(`/products?search=Office`)} className="mt-6 px-6 sm:px-8 py-2 sm:py-3 group bg-primary-foreground text-white font-semibold rounded-full shadow-lg hover:bg-primary transition duration-300 flex items-center justify-center space-x-2">
+                        <button onClick={() => navigate(`/products?searchTerm=Office`)} className="mt-6 px-6 sm:px-8 py-2 sm:py-3 group bg-primary-foreground text-white font-semibold rounded-full shadow-lg hover:bg-primary transition duration-300 flex items-center justify-center space-x-2">
                             <span>Explore Now</span>
                             <span className="text-lg transition-all duration-300 group-hover:translate-x-1">
                                 <ArrowRight />
@@ -70,7 +70,7 @@ const BannerSlider: React.FC = () => {
                         <p className="text-md sm:text-lg text-white mt-4 drop-shadow-md">
                             Explore our range of premium pens and pencils.
                         </p>
-                        <button onClick={() => navigate(`/products?search=pen`)} className="mt-6 px-6 sm:px-8 py-2 sm:py-3 group bg-primary-foreground text-white font-semibold rounded-full shadow-lg hover:bg-primary transition duration-300 flex items-center justify-center space-x-2 mx-auto">
+                        <button onClick={() => navigate(`/products?searchTerm=pen`)} className="mt-6 px-6 sm:px-8 py-2 sm:py-3 group bg-primary-foreground text-white font-semibold rounded-full shadow-lg hover:bg-primary transition duration-300 flex items-center justify-center space-x-2 mx-auto">
                             <span>Shop Now</span>
                             <span className="text-lg transition-all duration-300 group-hover:translate-x-1">
                                 <FaShoppingCart />

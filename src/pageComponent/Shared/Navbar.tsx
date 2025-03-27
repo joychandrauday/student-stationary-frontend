@@ -22,10 +22,7 @@ const Navbar = () => {
     const [modalType, setModalType] = useState("login"); // 'login' or 'register'
     const [searchQuery, setSearchQuery] = useState(""); // State to capture search input
     const navigate = useNavigate();
-    // const user = useAppSelector(useCurrentUser);
     const user = useSelector((state: RootState) => state.auth.user);
-    const token = useSelector((state: RootState) => state.auth.token);
-    console.log(user, token);
     const dispatch = useAppDispatch();
     const products = useAppSelector(orderedProducts)
     useEffect(() => {
