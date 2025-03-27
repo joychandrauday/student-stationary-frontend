@@ -12,8 +12,7 @@ const Dashboard = () => {
         <SidebarProvider className=''>
             <AppSidebar user={user} />
             <main className='w-full min-h-screen'>
-                <SidebarTrigger className='absolute md:hidden right-4 top-4 z-50' />
-                {/* {children} */}
+                <SidebarTrigger className='absolute md:hidden right-12 top-4 z-50' />
                 <Outlet />
             </main>
         </SidebarProvider >

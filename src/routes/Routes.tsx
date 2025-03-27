@@ -28,6 +28,9 @@ import Cart from "@/Pages/Shared/Cart";
 import SingleCategories from "@/Pages/Shared/SingleCategories";
 import UserPayment from "@/Pages/User/UserPayment";
 import ContactUS from "@/Pages/Shared/ContactUS";
+import AdminManageCategory from "@/Pages/Admin/AdminManageCategory";
+import AdminManageFlash from "@/Pages/Admin/AdminManageFlash";
+import AdminManageBrand from "@/Pages/Admin/AdminManageBrand";
 
 export const router = createBrowserRouter([
   {
@@ -78,7 +81,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/cart",
-        element: <ProtectedRoutes><Cart /></ProtectedRoutes>,
+        element: <Cart />,
       },
     ],
   },
@@ -116,6 +119,18 @@ export const router = createBrowserRouter([
       {
         path: "products/manage-products",
         element: <AdminManageProduct />,
+      },
+      {
+        path: "products/manage-category",
+        element: <AdminManageCategory />,
+      },
+      {
+        path: "products/manage-flash-sale",
+        element: <AdminManageFlash />,
+      },
+      {
+        path: "products/manage-brand",
+        element: <AdminManageBrand />,
       },
     ],
   },

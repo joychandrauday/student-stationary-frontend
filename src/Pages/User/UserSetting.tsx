@@ -1,6 +1,8 @@
+
 import { useState } from 'react';
 
 const UserSetting = () => {
+
     const [userInfo, setUserInfo] = useState({
         name: 'John Doe',
         email: 'john.doe@example.com',

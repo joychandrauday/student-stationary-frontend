@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useUpdateUserMutation } from "@/Redux/features/user/userApi";
 import { FaUserCircle } from "react-icons/fa";
 import useUser from "@/Utils/useUser";
+import useImageUpload from "@/Utils/useUplaodImages";
 
 interface User {
     _id: string;
@@ -14,11 +15,19 @@ interface User {
 const UserProfileDetails = () => {
     // Get user details using the custom `useUser` hook
     const { user, isLoading } = useUser(undefined) as { user: User | null, isLoading: boolean };
-
+    const { uploadImages, isLoading: isImageUploading, error: imageUploadError } = useImageUpload();
     // Set state for editing avatar
     const [isEditingAvatar, setIsEditingAvatar] = useState(false);
     const [newAvatarUrl, setNewAvatarUrl] = useState("");
 
+    const handleFeaturedImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const uploadedUrls = await uploadImages(e.target.files);
+            if (uploadedUrls.length > 0) {
+                setNewAvatarUrl(uploadedUrls[0]);
+            }
+        }
+    };
     // Set state for editing name
     const [isEditingName, setIsEditingName] = useState(false);
     const [newName, setNewName] = useState(user?.name || "");
@@ -29,10 +38,6 @@ const UserProfileDetails = () => {
     const handleAvatarClick = () => {
         // Toggle the avatar editing state
         setIsEditingAvatar(!isEditingAvatar);
-    };
-
-    const handleAvatarUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewAvatarUrl(e.target.value);
     };
 
     const handleAvatarSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -113,13 +118,15 @@ const UserProfileDetails = () => {
                 {isEditingAvatar && (
                     <form onSubmit={handleAvatarSubmit} className="flex flex-col items-center w-full">
                         <input
-                            type="url"
-                            placeholder="Enter Avatar URL"
-                            value={newAvatarUrl}
-                            onChange={handleAvatarUrlChange}
-                            className="w-full sm:w-3/4 p-2 border rounded-md mb-3"
-                            required
+                            type="file"
+                            name="featuredImages"
+                            id="featuredImages"
+                            onChange={handleFeaturedImageUpload}
+                            className="mt-2 p-3 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        {isImageUploading && <p className="text-green-500 text-sm mt-2">Finishing uploading...</p>}
+                        {imageUploadError && <p className="text-red-500 text-sm mt-2">{imageUploadError}</p>}
+
                         <button
                             type="submit"
                             className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"

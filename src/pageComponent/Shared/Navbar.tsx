@@ -8,9 +8,12 @@ import CategoriesDropdown from "../HomeComponent/CategoriesDropdown";
 import Login from "@/Pages/Shared/Login";
 import SignUp from "@/Pages/Shared/SignUp";
 import { useAppDispatch, useAppSelector } from "@/Redux/features/hook";
-import { logOut, useCurrentUser } from "@/Redux/features/auth/authSlice";
-import { useGetUserQuery } from "@/Redux/features/user/userApi";
-import { IUser } from "@/Interfaces/types";
+import { logOut } from "@/Redux/features/auth/authSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/features/store";
+import { orderedProducts } from "@/Redux/features/cart/cartSlice";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -19,12 +22,12 @@ const Navbar = () => {
     const [modalType, setModalType] = useState("login"); // 'login' or 'register'
     const [searchQuery, setSearchQuery] = useState(""); // State to capture search input
     const navigate = useNavigate();
-    const userToken = useAppSelector(useCurrentUser);
-    const { data: user, refetch } = useGetUserQuery(userToken?.email as string) as {
-        data: IUser | null; isLoading: boolean; error: unknown; refetch: () => void;
-    };
+    // const user = useAppSelector(useCurrentUser);
+    const user = useSelector((state: RootState) => state.auth.user);
+    const token = useSelector((state: RootState) => state.auth.token);
+    console.log(user, token);
     const dispatch = useAppDispatch();
-
+    const products = useAppSelector(orderedProducts)
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 0);
@@ -57,7 +60,6 @@ const Navbar = () => {
 
     const handleLogout = () => {
         dispatch(logOut());
-        refetch()
     };
 
     const handleSearch = () => {
@@ -68,8 +70,7 @@ const Navbar = () => {
 
     return (
         <div
-            className={`w-full z-50 transition-all duration-300 ${isScrolled ? "bg-primary/80 shadow-lg backdrop-blur-lg" : "bg-primary"
-                } text-white`}
+            className={`w-full z-50 transition-all duration-300 bg-primary text-white`}
         >
             <div className="mx-auto">
                 {/* Top Row */}
@@ -155,20 +156,13 @@ const Navbar = () => {
                             </>
                         )}
 
-                        <button
-                            onClick={() => handleNavigate("/cart")}
-                            className="relative flex items-center justify-center text-sm font-medium border border-primary-foreground rounded-full p-2 hover:bg-primary-foreground hover:text-primary transition duration-200"
-                        >
-                            {
-                                user?.cart?.length && user?.cart?.length > 0 && <div className="absolute top-0 right-0 bg-primary-foreground w-4 h-4 rounded-full text-[14px] flex items-center justify-center">{user?.cart?.length}</div>
-                            }
-                            <FiShoppingCart size={20} />
-                        </button>
+
                     </div>
                 </div >
 
                 {/* Bottom Row */}
-                <nav className="bg-primary text-sm font-medium">
+                <nav className={`bg-primary text-sm font-medium ${isScrolled ? "z-50 backdrop-blur-md bg-opacity-75 fixed top-0 w-full" : "bg-transparent"
+                    }`}>
                     <div className="flex justify-between items-center py-3 px-4 md:px-12">
                         {/* Left Section */}
                         <div className="flex items-center">
@@ -194,22 +188,41 @@ const Navbar = () => {
 
                         {/* User Profile & Admin Links */}
                         <div className="hidden sm:flex items-center space-x-4">
-                            {user?.role === "admin" ? (
+                            <button
+                                onClick={() => handleNavigate("/cart")}
+                                className="relative flex items-center justify-center text-sm font-medium border border-primary-foreground rounded-full p-2 hover:bg-primary-foreground hover:text-primary transition duration-200"
+                            >
+
+                                <div className="absolute top-0 right-0 bg-primary-foreground w-4 h-4 rounded-full text-[14px] flex items-center justify-center">{products.length}</div>
+
+                                <FiShoppingCart size={20} />
+                            </button>
+                            {!user ? (
                                 <>
-                                    <a href="/admin/users" className="hover:text-primary-foreground transition duration-200">Manage User</a>
-                                    <a href="/admin/products/manage-products" className="hover:text-primary-foreground transition duration-200">Manage Products</a>
+
                                 </>
                             ) : (
                                 <>
-                                    <a href="/user/account-details" className="flex items-center hover:text-primary-foreground transition duration-200 gap-2">
-                                        {user?.avatar ? (
-                                            <img src={user?.avatar} className="w-7 rounded-full" alt="User Avatar" />
-                                        ) : (
-                                            <FaUserCircle size={20} className="mr-2" />
-                                        )}
-                                        Profile
-                                    </a>
-                                    <a href="/user/my-orders" className="hover:text-primary-foreground transition duration-200">My Orders</a>
+                                    {/* user avatar */}
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger className="btn btn-ghost btn-circle avatar">
+                                            <img src={user.avatar || "/relisticon.png"} width={40} height={40} alt="User Avatar" className="rounded-full" />
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent className="w-44">
+                                            <DropdownMenuItem className="font-bold flex flex-col items-start hover:bg-primary-foreground">
+                                                <h1>Welcome,</h1>
+                                                <h1 className="">{user?.name ?? 'Unknown'}</h1>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem className="font-bold hover:bg-primary-foreground">
+                                                <a href={`${user.role === 'admin' ? 'admin' : 'user'}/dashboard`}> Dashboard </a>
+                                            </DropdownMenuItem>
+
+                                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:bg-primary-foreground">
+                                                Logout
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+
                                 </>
                             )}
                         </div>
@@ -249,26 +262,28 @@ const Navbar = () => {
                 </nav>
             </div >
 
-            {showModal && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-                    onClick={closeModal} // Close modal on overlay click
-                >
+            {
+                showModal && (
                     <div
-                        className="relative bg-transparent shadow-lg p-6 w-full max-w-md"
-                        onClick={(e) => e.stopPropagation()} // Prevent closeModal on modal content click
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                        onClick={closeModal} // Close modal on overlay click
                     >
-                        <button
-                            onClick={closeModal}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-800"
+                        <div
+                            className="relative bg-transparent shadow-lg p-6 w-full max-w-md"
+                            onClick={(e) => e.stopPropagation()} // Prevent closeModal on modal content click
                         >
-                            ✕
-                        </button>
-                        {modalType === "login" && <Login setShowModal={setShowModal} refetch={refetch} />}
-                        {modalType === "register" && <SignUp setShowModal={setShowModal} />}
+                            <button
+                                onClick={closeModal}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-800"
+                            >
+                                ✕
+                            </button>
+                            {modalType === "login" && <Login setShowModal={setShowModal} />}
+                            {modalType === "register" && <SignUp setShowModal={setShowModal} />}
+                        </div >
                     </div >
-                </div >
-            )}
+                )
+            }
 
         </div >
     );

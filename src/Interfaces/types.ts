@@ -1,3 +1,5 @@
+import { Brand, Category } from "@/Redux/features/product/productApi";
+
 export interface IReview {
     userId: {
         _id: string;
@@ -8,26 +10,38 @@ export interface IReview {
     description: string;
     rating: number;
     createdAt: Date;
+    _id?: string;
 }
 export interface IProduct {
-    _id: string;
+    _id?: string | undefined;
     name: string;
     description: string;
     rating?: number;
     discount?: number;
-    brand: string;
+    brand: string | Brand | {
+        _id?: string;
+        name: string;
+        description: string;
+        icon: string;
+        createdAt?: string;
+        updatedAt?: string;
+        __v?: number;
+    };
     price: number;
-    category: 'Writing' | 'Office' | 'Art' | 'Educational' | 'Technology' | 'Others';
-    images: string[];
-    featuredImages: string;
-    quantity: number;
-    inStock: boolean;
-    status: 'sale' | 'featured' | 'hot';
+    category: string | Category;
+    images?: string[];
+    featuredImages?: string;
+    quantity?: number;
+    inStock?: boolean;
+    status?: string | 'sale' | 'featured' | 'hot';
     reviews?: IReview[];
-    isError: boolean;
+    isError?: boolean;
     isLoading?: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt?: string;
+    updatedAt?: string;
+    offerPrice?: number;
+
+
 }
 export interface IUser {
     _id: string;
@@ -47,7 +61,7 @@ export interface ProductUpdate {
     description?: string;
     price?: number;
     discount?: number;
-    status: string;
+    status: 'sale' | 'featured' | 'hot';
     reviews?: IReview[];
     quantity?: number;
     inStock?: boolean;
@@ -111,4 +125,11 @@ export interface useAllUsersQuery {
     data: IUser[];
     isLoading: boolean;
     error: boolean;
+}
+
+export interface ICategory {
+    _id?: string;
+    name: string;
+    description: string;
+    icon: string;
 }

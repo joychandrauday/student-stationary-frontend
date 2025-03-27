@@ -11,6 +11,9 @@ import {
     FaUser,
     FaHeart,
     FaTruck,
+    FaShoppingBag,
+    FaPlusCircle,
+    FaStackExchange,
 } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import {
@@ -27,6 +30,7 @@ import { logOut } from "@/Redux/features/auth/authSlice";
 interface SubItem {
     title: string;
     url: string;
+    icon: IconType;
 }
 
 interface AdminItem {
@@ -47,8 +51,11 @@ const adminItems: AdminItem[] = [
         url: "products",
         icon: FaBoxOpen,
         subItems: [
-            { title: "Add Product", url: "add-product" },
-            { title: "Manage Products", url: "manage-products" },
+            { title: "Add Product", icon: FaShoppingBag, url: "add-product" },
+            { title: "Manage Products", icon: FaPlusCircle, url: "manage-products" },
+            { title: "Manage Category", icon: FaStackExchange, url: "manage-category" },
+            { title: "Manage FlashSale", icon: FaStackExchange, url: "manage-flash-sale" },
+            { title: "Manage Brands", icon: FaBoxOpen, url: "manage-brand" },
         ],
     },
     {
@@ -172,18 +179,26 @@ const AppSidebar = ({ user }: AppSidebarProps) => {
                                     </SidebarMenuButton>
                                     {/* Submenu */}
                                     {expanded[item.title] && (
-                                        <div className="pl-12 pt-2">
+                                        <div className="pl-4 pt-2">
                                             {item.subItems.map((subItem) => (
                                                 <a
                                                     key={subItem.title}
                                                     href={`/${user?.role ?? "guest"}/${item.url}/${subItem.url}`}
-                                                    className={`block py-2 px-3 rounded-none ${location.pathname ===
+                                                    className={`gap-2 py-2 flex px-3 rounded-none ${location.pathname ===
                                                         `/${user?.role ?? "guest"}/${item.url}/${subItem.url}`
                                                         ? "bg-primary text-white"
                                                         : "hover:bg-primary hover:text-white"
                                                         }`}
                                                 >
+                                                    <subItem.icon
+                                                        className={`${location.pathname.includes(item.url)
+                                                            ? "text-white"
+                                                            : "text-gray-300"
+                                                            }`}
+                                                        size={24}
+                                                    />
                                                     {subItem.title}
+
                                                 </a>
                                             ))}
                                         </div>

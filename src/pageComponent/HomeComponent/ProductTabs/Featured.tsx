@@ -1,96 +1,93 @@
-import { Marquee } from "@/components/ui/marquee";
-import { IProduct, IUser, useAllProductssQuery } from "@/Interfaces/types";
-import { useCurrentUser } from "@/Redux/features/auth/authSlice";
-import { useAppSelector } from "@/Redux/features/hook";
-import { useGetProductsQuery, useUpdateProductMutation } from "@/Redux/features/product/productApi";
-import { useUpdateUserMutation } from "@/Redux/features/user/userApi";
-import addToCart from "@/Utils/addToCard";
-import useUser from "@/Utils/useUser";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { useRef } from "react";
+import { Brand, useGetProductsQuery } from "@/Redux/features/product/productApi";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import 'swiper/swiper-bundle.css';
+import { ShoppingCart, Tag } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addProduct } from "@/Redux/features/cart/cartSlice";
+import { IProduct } from "@/Interfaces/types";
 const Featured = () => {
-    const navigate = useNavigate();
-    const [updateProduct] = useUpdateProductMutation()
-    const [updateUser] = useUpdateUserMutation()
-    const userToken = useAppSelector(useCurrentUser);
-    const { user } = useUser(userToken?.email) as { user: IUser | null; isLoading: boolean; error: unknown };
+    const { data } = useGetProductsQuery({ status: 'featured' });
+    const { products } = data || {}
+    console.log(products);
+    const swiperRef = useRef(null);
 
-
-    // State for quantity per product
-    const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-    // Handle quantity change for products in the cart
-    const handleQuantityChange = (productId: string, value: string) => {
-        setQuantities((prev) => ({
-            ...prev,
-            [productId]: Number(value),
-        }));
-    };
-
-
-    const { data: products = [], refetch } = useGetProductsQuery<useAllProductssQuery>({});
-
-    const productF = products.filter((product) => product.status === 'featured');
+    const dispatch = useDispatch()
     const handleAddToCart = (product: IProduct) => {
-        addToCart(product, user, updateProduct, updateUser, refetch);
+        dispatch(addProduct(product))
+        console.log("Added to Cart:", product.name);
     };
-
+    const isBrand = (brand: string | Brand | { name: string }): brand is Brand | { name: string } => {
+        return typeof brand !== "string"; // It's either a Brand object or an inline object with 'name'
+    };
     return (
-        <div className="">
-            <div className="relative flex container mx-auto w-full flex-col items-center justify-center overflow-hidden rounded-lg bg-transparent group">
-                <Marquee pauseOnHover className="[--duration:20s]">
-                    {productF.map((product) => (
-                        <div key={product._id} className="bg-white p-4 rounded-none shadow-md relative">
-                            <img src={product.featuredImages} alt={product.name} className="w-full h-40 object-cover mb-4" />
-
-                            <div className="absolute top-2 right-2 bg-primary rounded-full px-2 text-sm">
-                                Only {product.quantity} piece left
-                            </div>
-
-                            <h2 className="text-lg font-medium text-gray-800">{product.name}</h2>
-
-                            {/* Show Discounted Price if Available */}
-                            <p className="text-gray-600">
-                                {product.discount ? (
-                                    <>
-                                        <span className="line-through text-red-500">৳{product.price}</span>
-                                        <span className="text-green-600 font-bold ml-2">৳{(product.price - (product.price * product.discount / 100)).toFixed(2)}</span>
-                                    </>
-                                ) : (
-                                    <span>৳{product.price}</span>
+        <div className="container mx-auto px-4 py-10">
+            <div className="relative w-full mx-auto">
+                <Swiper
+                    ref={swiperRef}
+                    modules={[Navigation, Autoplay]}
+                    spaceBetween={20}
+                    slidesPerView={4}
+                    loop={true}
+                    autoplay={{ delay: 3000, disableOnInteraction: true }}
+                    breakpoints={{
+                        320: { slidesPerView: 1 },
+                        768: { slidesPerView: 2 },
+                        1024: { slidesPerView: 4 },
+                    }}
+                >
+                    {products && products.map((product) => (
+                        <SwiperSlide key={product._id} className="flex justify-center">
+                            <div className="relative border p-4 rounded-lg shadow-lg flex flex-col items-center transition-transform transform duration-300">
+                                {/* Quantity Ribbon */}
+                                {product.quantity > 0 && (
+                                    <div className="absolute top-2 left-0 bg-red-600 text-white text-xs font-bold px-4 py-1 shadow-lg rotate-[-20deg] rounded-l-md before:absolute before:top-full before:left-0 before:border-l-8 before:border-t-8 before:border-t-transparent before:border-l-red-800 after:absolute after:top-full after:right-0 after:border-r-8 after:border-t-8 after:border-t-transparent after:border-r-red-800">
+                                        {product.quantity} in stock
+                                    </div>
                                 )}
-                            </p>
+                                {
+                                    product.offerPrice > 0 && (<Badge className="absolute top-2 right-2 bg-[#EA580C] text-white text-xs px-2 py-1 flex items-center gap-1">
+                                        <Tag size={12} />{" "}
+                                        {Math.round(
+                                            ((product.price - product.offerPrice) / product.price) * 100
+                                        )}
+                                        % OFF
+                                    </Badge>)
+                                }
+                                <img src={product.featuredImages} alt={product.name} className="w-full border h-40 object-cover rounded-md mb-4" />
+                                <Link to={`/product/${product._id}`}>
+                                    <h3 className="text-lg font-semibold text-primary ">{product.name}</h3>
+                                </Link>
+                                <p className="text-gray-400 text-sm">
+                                    {isBrand(product.brand) ? product.brand.name : product.brand} {/* Safely access 'name' */}
+                                </p>
 
-                            <p className="text-yellow-500 font-medium">Rating: {product.rating} ⭐</p>
-                            <p className="text-gray-500 text-sm">Stock: {product.inStock ? "In Stock" : "Out of Stock"}</p>
+                                {/* Offer Price Section */}
+                                <div className="flex items-center space-x-2">
+                                    {product.offerPrice ? (
+                                        <>
+                                            <p className="text-yellow-400 font-bold text-lg">৳{product.offerPrice}</p>
+                                            <p className="text-gray-400 line-through text-sm">৳{product.price}</p>
+                                        </>
+                                    ) : (
+                                        <p className="text-yellow-400 font-bold text-lg">৳{product.price}</p>
+                                    )}
+                                </div>
 
-                            <input
-                                type="number"
-                                min="1"
-                                max={product.quantity}
-                                value={quantities[product._id] ?? 1}
-                                onChange={(e) => handleQuantityChange(product._id, e.target.value)}
-                                className="mt-1 w-full p-2 border rounded bg-primary-foreground"
-                            />
-
-                            <div className="mt-4 flex gap-2">
                                 <button
                                     onClick={() => handleAddToCart(product)}
-                                    className={!product.inStock || product.quantity === 0 || !user ? "cursor-not-allowed w-full bg-gray-500 text-white py-2 hover:bg-primary" : "w-full bg-primary-foreground text-white py-2 hover:bg-primary"}
-                                    disabled={!product.inStock || product.quantity === 0 || !user}
+                                    className="mt-3 bg-primary-foreground gap-2 items-center flex hover:bg-opacity-80 text-white px-4 py-2 rounded-md transition-all duration-300"
                                 >
-                                    Add to Cart
-                                </button>
-                                <button
-                                    onClick={() => navigate(`/product/${product._id}`)}
-                                    className="w-full bg-gray-300 text-gray-700 py-2 hover:bg-gray-400"
-                                >
-                                    View Details
+                                    <ShoppingCart /> Add to Cart
                                 </button>
                             </div>
-                        </div>
+
+                        </SwiperSlide>
                     ))}
-                </Marquee>
+                </Swiper>
             </div>
         </div>
     );

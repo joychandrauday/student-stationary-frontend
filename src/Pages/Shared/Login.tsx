@@ -20,7 +20,7 @@ interface LoginFormData {
     password: string;
 }
 
-const Login: React.FC<LoginProps> = ({ setShowModal, refetch }) => {
+const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     const dispatch = useAppDispatch();
     const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>(); // ✅ Corrected type here
     const [login] = useLoginMutation();
@@ -41,7 +41,6 @@ const Login: React.FC<LoginProps> = ({ setShowModal, refetch }) => {
                 navigate(from, { replace: true });
 
                 // Call refetch if provided
-                if (refetch) refetch();
             }
         } catch (error) {
             toast.error("Login failed! Please check your credentials.");

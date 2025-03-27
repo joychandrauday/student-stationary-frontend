@@ -1,17 +1,7 @@
+import { IReview } from "@/Interfaces/types";
 import { baseApi } from "@/Redux/api/baseApi";
 
-// Define the product type
-interface Product {
-    name: string;
-    brand: string;
-    price: number;
-    category: string;
-    description: string;
-    images: string[];
-    featuredImages: string;
-    quantity: number;
-    inStock: boolean;
-}
+
 
 // Define the response type
 interface ApiResponse<T> {
@@ -25,18 +15,82 @@ interface ApiResponse<T> {
         perPage: number;
     };
 }
-
 interface GetProductsParams {
-    name?: string;
-    brand?: string;
+    searchTerm?: string;
     category?: string;
-    inStock?: boolean;
     minPrice?: number;
     maxPrice?: number;
+    minRating?: number;
+    status?: string;
     page?: number;
     perPage?: number;
-    sortBy?: string;  // sort parameter (e.g., 'price' or 'name')
-    sortOrder?: 'asc' | 'desc';  // 'asc' or 'desc' for sorting order
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
+
+export interface Brand {
+    _id?: string;
+    name: string;
+    description: string;
+    icon: string;
+    createdAt?: string;
+    updatedAt?: string;
+    __v?: number;
+}
+
+export interface Category {
+    _id?: string | undefined;
+    name?: string;
+    description: string;
+    icon: string;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
+
+interface Product {
+    _id?: string;
+    name: string;
+    description: string;
+    brand: Brand | string | {
+        _id?: string;
+        name: string;
+        description: string;
+        icon: string;
+        createdAt?: string;
+        updatedAt?: string;
+        __v?: number;
+    };
+    price: number;
+    category: Category | string;
+    status: string;
+    images: string[];
+    featuredImages: string;
+    quantity: number;
+    inStock: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    reviews?: IReview[];
+    __v?: number;
+    discount: number;
+    rating: number;
+    offerPrice: number;
+}
+
+interface Meta {
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    perPage: number;
+}
+
+interface GeTApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: {
+        products: T[];
+        meta: Meta;
+    };
 }
 
 const productsApi = baseApi.injectEndpoints({
@@ -50,15 +104,19 @@ const productsApi = baseApi.injectEndpoints({
             }),
         }),
 
-        // Query for fetching products with filters, sorting, and pagination
-        getProducts: builder.query<Product[], GetProductsParams>({
+        getProducts: builder.query<{ products: Product[]; meta: Meta }, GetProductsParams>({
             query: (params) => ({
                 url: "/products",
                 method: "GET",
-                params,  // Directly pass the params object
+                params,
             }),
-            transformResponse: (response: ApiResponse<Product[]>) => response.data,
+            transformResponse: (response: GeTApiResponse<Product[]>) => ({
+                products: response.data.products.flat(), // Flatten the products if necessary
+                meta: response.data.meta, // Include the meta information
+            }),
         }),
+
+
 
         // Query to get a single product by its ID
         getProductById: builder.query<Product, string>({

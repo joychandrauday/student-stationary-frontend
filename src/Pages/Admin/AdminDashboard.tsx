@@ -19,7 +19,7 @@ const AdminDashboard = () => {
         {
             title: "Products",
             icon: <FaBox className="text-2xl" />,
-            value: products?.length || 0,
+            value: products?.meta.totalCount || 0,
         },
         {
             title: "Users",

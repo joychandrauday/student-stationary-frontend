@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-
-import { Marquee } from '@/components/ui/marquee';
-import { IProduct, IUser, ProductUpdate, useSingleProductQuery, IReview } from '@/Interfaces/types';
-import { useCurrentUser } from '@/Redux/features/auth/authSlice';
-import { useAppSelector } from '@/Redux/features/hook';
+import { IProduct, ProductUpdate, useSingleProductQuery, IReview } from '@/Interfaces/types';
+import ImageSlider from '@/pageComponent/product/ImageSlider';
+import { useAppDispatch } from '@/Redux/features/hook';
 import { useCreateOrderMutation } from '@/Redux/features/order/orderApi';
 import { useGetProductByIdQuery, useUpdateProductMutation } from '@/Redux/features/product/productApi';
-import { useUpdateUserMutation } from '@/Redux/features/user/userApi';
-import addToCart from '@/Utils/addToCard';
-import useUser from '@/Utils/useUser';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 import { ScrollRestoration, useParams } from 'react-router-dom';
+import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa"; // Import icons for stars
+import LoadingPage from '@/pageComponent/Shared/LoadingPage';
+import { addProduct } from '@/Redux/features/cart/cartSlice';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/Redux/features/store';
+import { Trash } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const SingleProduct = () => {
+    const user = useSelector((state: RootState) => state.auth.user);
     const { id } = useParams();
     const userId = id || '';
     const [quantity, setQuantity] = useState<number>(1);  // Ensuring quantity is typed as a number
@@ -22,21 +25,23 @@ const SingleProduct = () => {
     const handleBuyNowClick = () => {
         setShowShipping(true); // Show the shipping address field when clicking Buy Now
     };
-
-    const userToken = useAppSelector(useCurrentUser);
-    const { user } = useUser(userToken?.email) as { user: IUser | null; isLoading: boolean; error: unknown };
-
+    const dispatch = useAppDispatch()
+    const addToCart = (product: IProduct) => {
+        dispatch(addProduct(product));
+        toast.success(`${product.name} added to Cart!`, {
+            icon: "✅",
+            duration: 2000,
+        });
+    };
     const { data: product, isLoading, isError, refetch } = useGetProductByIdQuery<useSingleProductQuery>(userId);  // Properly typed product
     const [updateProduct] = useUpdateProductMutation();
-    const [updateUser] = useUpdateUserMutation();
     const [createOrder] = useCreateOrderMutation();
-
-    const handleAddToCart = (product: IProduct) => {
-        addToCart(product, user, updateProduct, updateUser, refetch);
-    };
 
     // Handle Buy Now functionality
     const handleBuyNow = async () => {
+        if (!product.quantity) {
+            return;
+        }
         if (product?.quantity < quantity || quantity <= 0) {
             toast.error('Invalid quantity or product is out of stock.');
             return;
@@ -81,7 +86,7 @@ const SingleProduct = () => {
     };
 
     const [review, setReview] = useState<IReview>({
-        userId: { _id: '', name: '', avatar: '', role: '' }, // Set userId as an object with the appropriate fields
+        userId: user.id,
         rating: 0,
         description: '',
         createdAt: new Date(),
@@ -89,19 +94,14 @@ const SingleProduct = () => {
 
     const handleReviewSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (review.rating && review.description && id && user?._id) {
+        if (review.rating && review.description && id && user) {
             const newReview: IReview = {
-                userId: {  // Make sure userId is an object with the required fields
-                    _id: user._id,
-                    name: user.name,
-                    avatar: user.avatar,
-                    role: user.role,
-                },
+                userId: user.id,
                 description: review.description,
                 rating: review.rating,
                 createdAt: new Date(),
             };
-
+            console.log(newReview);
             updateProduct({
                 productId: id,
                 updatedProduct: { reviews: [...(product?.reviews || []), newReview] } as ProductUpdate,
@@ -120,131 +120,258 @@ const SingleProduct = () => {
             toast.error('Please provide a rating and a comment!');
         }
     };
+    const handleDeleteReview = (reviewToDelete: IReview) => {
+        // Check if product.reviews is undefined or empty
+        if (!product?.reviews || product.reviews.length === 0) {
+            toast.error("No reviews available to delete.");
+            return;
+        }
 
+        // Use SweetAlert2 to confirm review deletion
+        Swal.fire({
+            title: "Are you sure?",
+            text: "This review will be deleted permanently!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Ensure the user is allowed to delete their own review (Optional)
+                if (reviewToDelete.userId._id !== user.id) {
+                    toast.error("You can only delete your own reviews.");
+                    return;
+                }
+                if (!product?.reviews || product.reviews.length === 0) {
+                    toast.error("No reviews available to delete.");
+                    return;
+                }
+                if (!id) {
+                    toast.error("Product ID not found");
+                    return;
+                }
+                const updatedReviews = product?.reviews.filter(
+                    (review) => review._id !== reviewToDelete._id
+                );
 
+                if (updatedReviews) {
+                    updateProduct({
+                        productId: id,
+                        updatedProduct: { reviews: updatedReviews } as ProductUpdate,
+                    })
+                        .then((response) => {
+                            if (response.data) {
+                                toast.success("Review deleted successfully!");
+                                refetch(); // Refetch to get the updated product details
+                            }
+                        })
+                        .catch((error) => {
+                            toast.error("Error deleting the review.");
+                            console.error("Error deleting the review: ", error);
+                        });
+                }
+            }
+        });
+    };
 
-    if (isLoading) return <p>Loading product details...</p>;
+    const handleStarClick = (rating: number) => {
+        setReview((prev: IReview) => ({ ...prev, rating }));
+    };
+
+    if (isLoading) return <LoadingPage />;
     if (isError) return <p>Error fetching product details.</p>;
 
-    const { name, description, brand, price, category, featuredImages, quantity: stock, inStock, images, reviews, createdAt, updatedAt } = product || {};
-
+    const { name, description, brand, price, category, quantity: stock, inStock, images, reviews } = product || {};
+    const brandName = typeof brand === 'string' ? brand : brand?.name || 'Unknown Brand';
+    const catName = typeof category === 'string' ? category : category?.name || 'Unknown Brand';
+    const getStars = (rating: number) => {
+        const stars = [];
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) {
+                stars.push(<FaStar key={i} className="text-primary-foreground" />);
+            } else if (i - 0.5 === rating) {
+                stars.push(<FaStarHalfAlt key={i} className="text-primary-foreground" />);
+            } else {
+                stars.push(<FaRegStar key={i} className="text-gray-300" />);
+            }
+        }
+        return stars;
+    };
     return (
         <div className="min-h-screen">
             <div className="mx-auto bg-white shadow-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <img src={featuredImages} alt={name} className="w-full h-80 object-cover rounded-lg" />
 
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800">{name}</h1>
-                        <p className="text-gray-600 mt-2">{description}</p>
-                        <p className="text-gray-700"><span className="font-semibold">Brand:</span> {brand}</p>
-                        <p className="text-gray-700"><span className="font-semibold">Category:</span> {category}</p>
-                        <p className="text-gray-700"><span className="font-semibold">Price:</span> ৳{price}</p>
-                        <p className="text-gray-700"><span className="font-semibold">Stock:</span> {inStock ? 'In Stock' : 'Out of Stock'}</p>
-                        <p className="text-gray-500 text-sm mt-4">Created at: {new Date(createdAt).toLocaleDateString()}</p>
-                        <p className="text-gray-500 text-sm">Updated at: {new Date(updatedAt).toLocaleDateString()}</p>
-
-                        {/* Quantity Input */}
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                            <input
-                                type="number"
-                                min="1"
-                                max={stock}
-                                value={quantity}
-                                onChange={(e) => setQuantity(Number(e.target.value))}
-                                className="mt-1 w-full p-2 border rounded bg-primary-foreground"
-                            />
-                        </div>
-
-                        <button
-                            onClick={() => handleAddToCart(product)}
-                            disabled={!product.inStock || product.quantity === 0 || !user}
-                            className={`mt-4 w-full py-3 text-white font-semibold rounded ${inStock ? 'bg-primary-foreground hover:bg-primary' : 'bg-gray-400 cursor-not-allowed'}`}
-                        >
-                            Add to Cart
-                        </button>
-                        {showShipping && (
-                            <div className="mt-4">
-                                <label htmlFor="shippingAddress" className="block text-gray-700 font-medium mb-2">
-                                    Shipping Address:
-                                </label>
-                                <input
-                                    type="text"
-                                    name="shippingAddress"
-                                    id="shippingAddress"
-                                    className="w-full px-4 py-2 border border-gray-300 text-primary focus:outline-none focus:ring-2 focus:ring-primary"
-                                    placeholder="Enter your shipping address here..."
-                                    value={shippingAddress}
-                                    onChange={(e) => setShippingAddress(e.target.value)}
-                                />
-                            </div>
-                        )}
-
-                        {/* Buy Now Button */}
-                        <button
-                            onClick={showShipping ? handleBuyNow : handleBuyNowClick}
-                            disabled={!product.inStock || product.quantity === 0 || !user}
-                            className={`mt-4 w-full py-3 text-white font-semibold  ${product.inStock ? "bg-primary-foreground hover:bg-primary" : "bg-gray-400 cursor-not-allowed"
-                                }`}
-                        >
-                            {showShipping ? "Confirm Purchase" : "Buy Now"}
-                        </button>
-                    </div>
-                </div>
 
                 <div className="flex flex-col md:flex-row gap-8">
                     <div className="w-full md:w-1/2">
-                        <Marquee pauseOnHover className="[--duration:20s]">
-                            {images?.map((image, index) => (
-                                <img key={index} src={image} alt={name} className="w-1/3 object-cover rounded-lg" />
-                            ))}
-                        </Marquee>
+                        {images ?
+
+                            <ImageSlider images={images} />
+                            :
+                            <img className="object-cover w-full h-64 rounded-lg" src="https://via.placeholder.com/500x300" alt="Product" />
+                        }
                     </div>
 
-                    <div className="w-full md:w-1/2">
-                        <div className="mt-8">
-                            <h2 className="text-xl font-bold text-gray-800">Customer Reviews</h2>
-                            {reviews?.length ? (
-                                <div className="mt-4 space-y-6">
-                                    {reviews.map((review, index: number) => (
-                                        <div key={index} className="p-4 bg-gray-50 rounded shadow-md border">
-                                            <p className="font-semibold text-gray-800">{review.userId?.name}</p>
+                    <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                        {/* Product Title & Description */}
+                        <h1 className="text-3xl font-bold text-gray-900">{name}</h1>
+                        <p className="text-gray-600 mt-2">{description}</p>
 
-                                            <p className="text-gray-600 text-sm">{review.rating} ⭐</p>
-                                            <p className="text-gray-600 mt-2">{review.description}</p>
-                                        </div>
-                                    ))}
-                                </div>
+                        {/* Product Info */}
+                        <div className="mt-4 space-y-2">
+                            <p className="text-gray-700"><span className="font-semibold">Brand:</span> {brandName}</p>
 
-                            ) : <p className="text-gray-500 mt-4">No reviews yet.</p>}
+                            <p className="text-gray-700"><span className="font-semibold">Category:</span> {catName}</p>
+                            <p className="text-xl font-bold text-primary">৳{price}</p>
+                            <p className={`font-semibold ${inStock ? "text-green-600" : "text-red-500"}`}>
+                                {inStock ? "In Stock" : "Out of Stock"}
+                            </p>
                         </div>
 
-                        <form onSubmit={handleReviewSubmit} className="mt-8 space-y-4">
-                            <input
-                                type="number"
-                                name="rating"
-                                value={review.rating}
-                                onChange={handleReviewChange}
-                                min="1"
-                                max="5"
-                                className="w-full p-2 border rounded bg-primary-foreground"
-                                required
-                            />
-                            <textarea
-                                name="description"  // Ensure this matches the state key you're using (e.g., 'comment' or 'description')
-                                value={review.description} // Update the correct field in your state
-                                onChange={handleReviewChange}
-                                rows={4}
-                                className="w-full p-2 border rounded bg-primary-foreground"
-                                required
-                            />
-                            <button type="submit" className="py-2 px-4 bg-primary-foreground text-white hover:bg-primary">
-                                Submit Review
+                        {/* Quantity Selector */}
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700">Quantity</label>
+                            <div className="flex items-center mt-2 border rounded-lg w-max">
+                                <button
+                                    onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}
+                                    className="px-3 py-2 bg-gray-500 hover:bg-gray-300 rounded-l-md"
+                                >-</button>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max={stock}
+                                    value={quantity}
+                                    onChange={(e) => setQuantity(Number(e.target.value))}
+                                    className="w-14 text-black text-center border-x outline-none"
+                                />
+                                <button
+                                    onClick={() => setQuantity(Number(quantity) < Number(stock) ? Number(stock) + 1 : Number(stock))}
+                                    className="px-3 py-2 bg-gray-500 hover:bg-gray-300 rounded-r-md"
+                                >+</button>
+                            </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="mt-6 space-y-3">
+                            <button
+                                onClick={() => addToCart(product)}
+                                disabled={!inStock || !user}
+                                className={`w-full py-3 font-semibold  rounded-lg transition ${inStock ? "bg-transparent border-primary-foreground border-2 text-primary hover:bg-primary-foreground" : "bg-gray-400 cursor-not-allowed"
+                                    }`}
+                            >
+                                Add to Cart
                             </button>
-                        </form>
+
+                            {showShipping && (
+                                <div className="mt-4">
+                                    <label htmlFor="shippingAddress" className="block text-gray-700 font-medium mb-2">
+                                        Shipping Address:
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="shippingAddress"
+                                        id="shippingAddress"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                        placeholder="Enter your shipping address..."
+                                        value={shippingAddress}
+                                        onChange={(e) => setShippingAddress(e.target.value)}
+                                    />
+                                </div>
+                            )}
+
+                            <button
+                                onClick={showShipping ? handleBuyNow : handleBuyNowClick}
+                                disabled={!inStock || !user}
+                                className={`w-full py-3 font-semibold text-white rounded-lg transition ${inStock ? "bg-primary-foreground hover:bg-primary" : "bg-gray-400 cursor-not-allowed"
+                                    }`}
+                            >
+                                {showShipping ? "Confirm Purchase" : "Buy Now"}
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                <div className="mt-8">
+                    <h2 className="text-xl font-bold text-gray-800">Customer Reviews</h2>
+                    <div className="">
+                        {reviews?.length ? (
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {reviews.map((review, index: number) => {
+                                    const userInitial = review.userId?.name ? review.userId.name.charAt(0).toUpperCase() : "?";
+
+                                    return (
+                                        <div key={index} className="p-5 relative bg-white rounded-lg shadow-md border border-gray-200 flex gap-4 items-start">
+                                            {/* Avatar Section */}
+                                            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold text-lg">
+                                                {review.userId?.avatar ? (
+                                                    <img
+                                                        src={review.userId.avatar}
+                                                        alt={review.userId.name}
+                                                        className="w-full h-full rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <span>{userInitial}</span>
+                                                )}
+                                            </div>
+                                            <div className="flex absolute top-2 right-2 items-center mt-1">{getStars(review.rating)}</div>
+                                            {
+                                                review.userId._id === user.id &&
+                                                <button
+                                                    className="flex absolute bottom-2 text-red-500 right-2 items-center mt-1"
+                                                    onClick={() => handleDeleteReview(review)}
+                                                >
+                                                    <Trash />
+                                                </button>
+                                            }
+                                            {/* Review Content */}
+                                            <div className="flex-1">
+                                                <p className="font-semibold text-gray-800">{review.userId?.name}</p>
+                                                <p className="text-gray-600 ">{review.description}</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+
+                        ) : <p className="text-gray-500 mt-4">No reviews yet.</p>}
                     </div>
                 </div>
+                {/* Review Form */}
+                <form onSubmit={handleReviewSubmit} className="mt-8 space-y-6">
+                    <div className="flex gap-2 items-center">
+                        <p className="text-sm text-gray-700">Rate this product:</p>
+                        <div className="flex gap-1">
+                            {getStars(review.rating).map((star, index) => (
+                                <span
+                                    key={index}
+                                    className="cursor-pointer"
+                                    onClick={() => handleStarClick(index + 1)}
+                                >
+                                    {star}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <textarea
+                            name="description"
+                            value={review.description}
+                            onChange={handleReviewChange}
+                            rows={4}
+                            placeholder="Write your review..."
+                            className="w-full p-4 border text-gray-700 border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                        />
+
+                        <button
+                            type="submit"
+                            className="w-full py-3 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition duration-200"
+                        >
+                            Submit Review
+                        </button>
+                    </div>
+                </form>
             </div>
             <ScrollRestoration />
         </div>

@@ -85,5 +85,6 @@ export const {
     useUpdateWholeOrderMutation,
     useDeleteOrderMutation,
     useGetUserOrdersQuery,
-    useVerifyOrderQuery
+    useVerifyOrderQuery,
+    useGettingSingleOrderQuery,
 } = ordersApi;

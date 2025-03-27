@@ -54,13 +54,11 @@ const AdminReport = () => {
     const { data: orders } = useAllOrdersQuery<useAllOrdersQuery>(dateFilter || {});
 
     const { data: users } = useGetUsersQuery<useAllUsersQuery>({});
-    // Sales data for the chart (Dynamic sales data based on the orders)
 
     const lastFourMonths = Array.from({ length: 4 }, (_, i) =>
         format(subMonths(new Date(), i), "MMMM")
     ).reverse();
 
-    // গত ৪ মাসের sales data বের করা
     const filteredSalesData = lastFourMonths.map(month => {
         const monthlyOrders = orders?.filter(order =>
             format(new Date(order.orderDate), "MMMM") === month

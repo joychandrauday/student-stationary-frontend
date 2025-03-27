@@ -1,23 +1,31 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-import { useUpdateWholeOrderMutation, useVerifyOrderQuery } from '@/Redux/features/order/orderApi';
-import { useEffect } from 'react';
+/* eslint-disable prefer-const */
+import { useGettingSingleOrderQuery, useUpdateWholeOrderMutation, useVerifyOrderQuery } from '@/Redux/features/order/orderApi';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import logo from '../../assets/studentstationarylogo.png'
+import { IOrder } from '@/Interfaces/types';
 
 const UserPayment = () => {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get("order_id");
+    const [spId, setSpId] = useState('')
     const [updateWholeOrder] = useUpdateWholeOrderMutation();
+    const { data: order } = useGettingSingleOrderQuery(spId)
+    console.log(order?.data, 'hellooo');
+    const orderData = order?.data
     const { isLoading, data } = useVerifyOrderQuery(orderId, {
         refetchOnMountOrArgChange: true,
     });
-
+    console.log(data);
     useEffect(() => {
         if (!isLoading && data?.data?.length > 0) {
             Swal.fire({
                 title: "Payment Confirmation!",
-                text: `your payment attempt was ${payment.bank_status}`,
+                text: `Your payment attempt was ${data?.data[0]?.bank_status}`,
                 icon: "info",
                 confirmButtonText: "OK",
                 confirmButtonColor: "#3085d6",
@@ -25,7 +33,10 @@ const UserPayment = () => {
                 if (result.isConfirmed) {
                     try {
                         const payment = data?.data?.[0];
+
                         if (payment?.customer_order_id) {
+
+                            setSpId(payment?.customer_order_id)
                             const updatedData = {
                                 paymentStatus: payment.bank_status === "Success" ? "Completed" : "Failed",
                                 orderStatus: payment.bank_status === "Success" ? "Processing" : "Pending",
@@ -41,6 +52,68 @@ const UserPayment = () => {
             });
         }
     }, [isLoading, data, updateWholeOrder]);
+    const generateInvoice = (orderData: IOrder) => {
+        const doc = new jsPDF();
+
+        // Add logo to the document
+        doc.addImage(logo, 'PNG', 160, 10, 45, 13);
+
+        // Set font size for the title and the rest of the document
+        doc.setFontSize(18);
+        doc.text('Invoice', 14, 20);
+        doc.setFontSize(12);
+
+        const { createdAt, shippingAddress, products, transaction, orderStatus, paymentStatus, estimatedDeliveryDate } = orderData;
+        const orderDate = new Date(createdAt).toLocaleDateString();
+        if (!createdAt || !shippingAddress || !products || !transaction || !orderStatus || !paymentStatus || !estimatedDeliveryDate) {
+            return;
+        }
+        const estimatedDelivery = new Date(estimatedDeliveryDate).toLocaleDateString();
+        let YH = 25;
+        doc.setFontSize(12);
+
+        // Display order details
+        doc.text(`Order Date: ${orderDate}`, 14, YH);
+        YH += 7;
+        doc.text(`Transaction ID: ${transaction.id}`, 14, YH);
+        YH += 7;
+        doc.text(`Shipping Address: ${shippingAddress}`, 14, YH);
+        YH += 7;
+        doc.text(`Transaction Method: ${transaction.method}`, 14, YH);
+        YH += 7;
+        doc.text(`Transaction Status: ${paymentStatus}`, 14, YH);
+        YH += 7;
+        doc.text(`Order Status: ${orderStatus}`, 14, YH);
+        YH += 7;
+        doc.text(`Estimated Delivery Date: ${estimatedDelivery}`, 14, YH);
+
+        // Start table for the products
+        let finalY = YH + 10;  // Adjust start Y for the table
+
+        // Create table for products
+        doc.text('Products:', 14, finalY);
+        autoTable(doc, {
+            startY: finalY + 5,
+            head: [['Product Name', 'Quantity', 'Price (Taka)', 'Total (Taka)']],
+            body: products.map(product => [
+                product.productId.name,  // Adjusted to your data structure
+                product.quantity,
+                product.price,
+                product.totalPrice
+            ]),
+            didDrawPage: (data) => {
+                // Calculate subtotal here
+                let subtotal = products.reduce((total, product) => total + product.totalPrice, 0);
+
+                // Add subtotal to the bottom of the table
+                doc.text(`Subtotal: Taka ${subtotal.toFixed(2)}`, 14, data.cursor ? data.cursor.y : 0 + 10); // Adjust position based on the table height
+            }
+        });
+
+        // Save the generated PDF
+        doc.save('Invoice_' + orderData._id + '.pdf');
+    };
+
 
     if (isLoading) {
         return <div className="text-center text-lg font-semibold">Loading...</div>;
@@ -70,11 +143,14 @@ const UserPayment = () => {
             </div>
 
             <div className="mt-6">
-                <button className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700">
+                <button
+                    onClick={() => generateInvoice(orderData)} // Call the generateInvoice function
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700"
+                >
                     Download Invoice
                 </button>
             </div>
-        </div>
+        </div >
     );
 };
 

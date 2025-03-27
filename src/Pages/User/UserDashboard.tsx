@@ -1,4 +1,6 @@
 import { useAllOrdersQuery } from '@/Interfaces/types';
+import { orderedProducts } from '@/Redux/features/cart/cartSlice';
+import { useAppSelector } from '@/Redux/features/hook';
 import { useGetUserOrdersQuery } from '@/Redux/features/order/orderApi';
 import useUser from '@/Utils/useUser';
 import { FaBox, FaShoppingCart, FaClipboardList, FaCalendarAlt } from 'react-icons/fa';
@@ -9,7 +11,7 @@ const UserDashboard = () => {
     const { data: orders, isLoading: ordersLoading, error: ordersError } = useGetUserOrdersQuery<useAllOrdersQuery>(userId, {
         skip: !userId,
     });
-
+    const products = useAppSelector(orderedProducts);
     if (userLoading || ordersLoading) {
         return <div>Loading...</div>; // Or you can show a spinner here
     }
@@ -50,7 +52,7 @@ const UserDashboard = () => {
                     <div>
                         <h3 className="text-xl font-semibold text-gray-800">Items in Cart</h3>
                         {/* Assuming you have cart data, otherwise you can add this logic */}
-                        <p className="text-lg text-gray-600">{user.cart?.length || 0} items</p>
+                        <p className="text-lg text-gray-600">{products?.length || 0} items</p>
                     </div>
                 </div>
                 <div className="flex items-center space-x-4">

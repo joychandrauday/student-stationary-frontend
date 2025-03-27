@@ -1,85 +1,66 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// src/pages/AdminManageProduct.tsx
+
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Trash2, Edit } from "lucide-react";
-import { useDeleteProductMutation, useGetProductsQuery, useUpdateProductMutation } from "@/Redux/features/product/productApi";
+import { Brand, useDeleteProductMutation, useGetProductsQuery, useUpdateProductMutation } from "@/Redux/features/product/productApi";
 import { IProduct } from "@/Interfaces/types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import toast from "react-hot-toast";
 import Swal from 'sweetalert2';
+import FilterDashboard from "@/pageComponent/Dashboard/ProductFilterDashboard";
+import { useSearchParams } from "react-router-dom";
+import ProductPagination from "@/pageComponent/product/ProductPagination";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+
 const AdminManageProduct = () => {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
     const [updatedProduct, setUpdatedProduct] = useState<Partial<IProduct>>({});
-    const [updateProduct] = useUpdateProductMutation()
-    const [deleteProduct] = useDeleteProductMutation()
-    const [filters, setFilters] = useState({
-        searchTerm: "",
-        categoryFilter: "",
-        inStockFilter: "all",
-        sortBy: "",
-        sortOrder: "asc",
-        page: 1,
-        minPrice: 0,
-        maxPrice: 1000, // Set a default max price limit (adjust as needed)
-    });
+    const [updateProduct] = useUpdateProductMutation();
+    const [deleteProduct] = useDeleteProductMutation();
 
-    const { searchTerm, categoryFilter, inStockFilter, sortBy, sortOrder, minPrice, maxPrice } = filters;
 
-    const inStockParam = inStockFilter === "all" ? undefined : inStockFilter === "inStock" ? "true" : "false";
+    const [searchParams] = useSearchParams();
 
-    interface Meta {
-        totalPages: number;
-    }
+    const searchTerm = searchParams.get('searchTerm') || '';
+    const category = searchParams.get('category');
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    const sortBy = searchParams.get('sortBy');
+    const sortOrder = (searchParams.get('sortOrder') === 'desc' ? 'desc' : 'asc') as 'asc' | 'desc';
+    const minRating = searchParams.get('minRating');
+    const status = searchParams.get('status') || 'active';
+    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
 
-    interface UseGetProductsQueryResult {
-        data: IProduct[];
-        isLoading: boolean;
-        error: boolean;
-        meta: Meta;
-    }
+    const parsedMinPrice = minPrice ? parseFloat(minPrice) : undefined;
+    const parsedMaxPrice = maxPrice ? parseFloat(maxPrice) : undefined;
+    const parsedMinRating = minRating ? parseFloat(minRating) : undefined;
 
-    const { data: products = [], isLoading, error, meta, refetch } = useGetProductsQuery<UseGetProductsQueryResult>({
-        name: searchTerm || undefined,
-        category: categoryFilter || undefined,
-        inStock: inStockParam === "true" ? true : inStockParam === "false" ? false : undefined,
-        sortBy: sortBy || undefined,
-        sortOrder: sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined,
-        page: filters.page,
-        minPrice,
-        maxPrice,
-    });
-
-    const totalPages = meta?.totalPages || 1;
-
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setFilters((prevFilters) => ({
-            ...prevFilters,
-            [name]: value,
-        }));
+    const queryParams = {
+        searchTerm,
+        ...(category && category !== 'null' && { category }),
+        ...(parsedMinPrice && !isNaN(parsedMinPrice) && { minPrice: parsedMinPrice }),
+        ...(parsedMaxPrice && !isNaN(parsedMaxPrice) && { maxPrice: parsedMaxPrice }),
+        ...(parsedMinRating && !isNaN(parsedMinRating) && { minRating: parsedMinRating }),
+        ...(sortBy && { sortBy }),
+        sortOrder,
+        status,
+        page,
+        perPage: 9,
     };
 
-    const handlePageChange = (newPage: number) => {
-        if (newPage >= 1 && newPage <= totalPages) {
-            setFilters((prevFilters) => ({
-                ...prevFilters,
-                page: newPage,
-            }));
-        }
-    };
-
-    const categories = ["Writing", "Office", "Art", "Educational", "Technology", "Others"];
+    const { data, isLoading, refetch } = useGetProductsQuery(queryParams);
+    const { products, meta } = data || {};
+    console.log(products);
+    const totalPages = meta?.totalPages || 1
 
 
-
-    // ...
     const handleDelete = async (id: string) => {
-        // swal2 to confirmation delete 
-
         const { value: confirm } = await Swal.fire({
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -87,17 +68,19 @@ const AdminManageProduct = () => {
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+            confirmButtonText: 'Yes, delete it!',
         });
 
         if (confirm) {
-            await deleteProduct(id);
-            toast.success('Product deleted successfully!');
-            refetch();
+            try {
+                await deleteProduct(id);
+                toast.success('Product deleted successfully!');
+                refetch();
+            } catch (err) {
+                toast.error('Failed to delete product');
+            }
         }
     };
-
-    // ...
 
     const handleEditClick = (product: IProduct) => {
         setSelectedProduct(product);
@@ -105,121 +88,35 @@ const AdminManageProduct = () => {
         setEditModalOpen(true);
     };
 
-    const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setUpdatedProduct((prev) => ({ ...prev, [name]: value }));
     };
-
+    const isBrand = (brand: string | Brand | { name: string }): brand is Brand | { name: string } => {
+        return typeof brand !== "string"; // It's either a Brand object or an inline object with 'name'
+    };
     const handleUpdateSubmit = async () => {
         if (selectedProduct) {
-            await updateProduct({ productId: selectedProduct._id, updatedProduct });
-            setEditModalOpen(false);
-            refetch()
-            toast.success('Product updated successfully!');
+            try {
+                await updateProduct({ productId: selectedProduct._id as string, updatedProduct });
+                setEditModalOpen(false);
+                refetch();
+                toast.success('Product updated successfully!');
+            } catch (err) {
+                toast.error('Failed to update product');
+            }
         }
     };
 
     if (isLoading) return <p>Loading...</p>;
-    if (error) return <p>Error fetching products.</p>;
 
     return (
         <div className="max-w-7xl mx-auto rounded-none md:p-6">
             <Card className="shadow-lg">
                 <CardHeader>
                     <CardTitle className="text-3xl font-bold text-center mb-4">Manage Products</CardTitle>
-
-                    {/* Search and Filter Section */}
-                    <div className="flex flex-wrap md:flex-nowrap items-center justify-between gap-4 bg-primary p-4 rounded-none">
-
-                        {/* Filters - Search & Select Options */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 flex-1">
-                            {/* Search Input */}
-                            <Input
-                                type="text"
-                                placeholder="Search by product name..."
-                                className="w-full bg-primary-foreground text-white rounded-none border-none focus:ring-2 focus:ring-primary"
-                                value={searchTerm}
-                                onChange={handleFilterChange}
-                                name="searchTerm"
-                            />
-
-                            {/* Category Filter */}
-                            <select
-                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
-                                value={categoryFilter}
-                                onChange={handleFilterChange}
-                                name="categoryFilter"
-                            >
-                                <option value="">All Categories</option>
-                                {categories.map((category) => (
-                                    <option key={category} value={category} className="bg-primary-foreground hover:bg-primary">
-                                        {category}
-                                    </option>
-                                ))}
-                            </select>
-
-                            {/* In Stock Filter */}
-                            <select
-                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
-                                value={inStockFilter}
-                                onChange={handleFilterChange}
-                                name="inStockFilter"
-                            >
-                                <option value="all">All Stock Status</option>
-                                <option value="inStock">In Stock</option>
-                                <option value="outOfStock">Out of Stock</option>
-                            </select>
-
-                            {/* Sort By Filter */}
-                            <select
-                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
-                                value={sortBy}
-                                onChange={handleFilterChange}
-                                name="sortBy"
-                            >
-                                <option value="name">Sort by Name</option>
-                                <option value="price">Sort by Price</option>
-                            </select>
-
-                            {/* Sort Order Filter */}
-                            <select
-                                className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
-                                value={sortOrder}
-                                onChange={handleFilterChange}
-                                name="sortOrder"
-                            >
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
-                            </select>
-                        </div>
-
-                        {/* Price Range Slider */}
-                        <div className="flex flex-col items-center w-full md:w-1/4">
-                            <span className="text-white">Min: {minPrice} BDT</span>
-                            <input
-                                type="range"
-                                min="0"
-                                max="5555"
-                                step="10"
-                                value={minPrice}
-                                onChange={(e) => setFilters((prev) => ({ ...prev, minPrice: Number(e.target.value) }))}
-                                className="w-full bg-primary-foreground text-white focus:ring-2 focus:ring-primary"
-                            />
-                            <input
-                                type="range"
-                                min="0"
-                                max="5555"
-                                step="10"
-                                value={maxPrice}
-                                onChange={(e) => setFilters((prev) => ({ ...prev, maxPrice: Number(e.target.value) }))}
-                                className="w-full bg-primary-foreground text-white focus:ring-2 focus:ring-primary"
-                            />
-                            <span className="text-white">Max: {maxPrice} BDT</span>
-                        </div>
-
-                    </div>
+                    <FilterDashboard />
                 </CardHeader>
-
                 <CardContent>
                     <Table className="w-full border">
                         <TableHeader>
@@ -230,25 +127,25 @@ const AdminManageProduct = () => {
                                 <TableHead>Price (BDT)</TableHead>
                                 <TableHead>Category</TableHead>
                                 <TableHead>Quantity</TableHead>
-                                <TableHead>discount(%)</TableHead>
+                                <TableHead>Discount(%)</TableHead>
                                 <TableHead className="text-center">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products.map((product, index: number) => (
+                            {products && products?.map((product: IProduct, index: number) => (
                                 <TableRow key={product._id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{product.name}</TableCell>
                                     <TableCell>{product.status}</TableCell>
                                     <TableCell>{product.price}</TableCell>
-                                    <TableCell>{product.category}</TableCell>
+                                    <TableCell>  {isBrand(product.brand) ? product.brand.name : product.brand}
+                                    </TableCell>
                                     <TableCell>
                                         {
                                             product.quantity === 0
                                                 ? <div className="bg-red-700 animate-pulse text-center text-white rounded-full">{product.quantity}</div>
                                                 : product.quantity
                                         }
-
                                     </TableCell>
                                     <TableCell>{product.discount}</TableCell>
                                     <TableCell className="text-center space-x-2">
@@ -260,7 +157,7 @@ const AdminManageProduct = () => {
                                             <Edit className="w-4 h-4" />
                                         </Button>
                                         <Button variant="destructive" size="sm"
-                                            onClick={() => handleDelete(product._id)}
+                                            onClick={() => handleDelete(product._id as string)}
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
@@ -270,17 +167,7 @@ const AdminManageProduct = () => {
                         </TableBody>
                     </Table>
 
-                    <div className="flex justify-between items-center mt-4">
-                        <Button disabled={filters.page === 1} onClick={() => handlePageChange(filters.page - 1)}>
-                            Previous
-                        </Button>
-                        <div className="text-sm font-medium">
-                            Page {filters.page} of {totalPages}
-                        </div>
-                        <Button disabled={filters.page === totalPages} onClick={() => handlePageChange(filters.page + 1)}>
-                            Next
-                        </Button>
-                    </div>
+                    <ProductPagination totalPage={totalPages} />
                 </CardContent>
             </Card>
 
@@ -296,58 +183,59 @@ const AdminManageProduct = () => {
                                 <Label>Name</Label>
                                 <Input
                                     name="name"
-                                    value={updatedProduct.name || ""}
+                                    value={updatedProduct?.name || ""}
                                     onChange={handleUpdateChange}
                                 />
                             </div>
                             <div>
-                                <Label>quantity</Label>
+                                <Label>Quantity</Label>
                                 <Input
                                     name="quantity"
                                     type="number"
-                                    value={updatedProduct.quantity || 0}
+                                    value={updatedProduct?.quantity || 0}
                                     onChange={handleUpdateChange}
                                 />
                             </div>
                             <div>
                                 <Label>Status</Label>
-                                <Input
+                                <select
                                     name="status"
-                                    type="text"
-                                    value={updatedProduct.status || 'featured'}
+                                    value={updatedProduct?.status || 'featured'}
                                     onChange={handleUpdateChange}
-                                    list="quantity-options" // Connects the input to the datalist
-                                />
-                                <datalist id="quantity-options">
-                                    <option value="sale" />
-                                    <option value="hot" />
-                                </datalist>
+                                    className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
+                                >
+                                    <option value="sale">Sale</option>
+                                    <option value="hot">Hot</option>
+                                    <option value="featured">Featured</option>
+                                </select>
                             </div>
-
                             <div>
                                 <Label>Price (BDT)</Label>
                                 <Input
                                     type="number"
                                     name="price"
-                                    value={updatedProduct.price || ""}
+                                    value={updatedProduct?.price || ""}
                                     onChange={handleUpdateChange}
                                 />
                             </div>
                             <div>
-                                <Label>discount(%)</Label>
+                                <Label>Discount(%)</Label>
                                 <Input
                                     name="discount"
-                                    value={updatedProduct.discount || 0}
+                                    value={updatedProduct?.discount || 0}
                                     onChange={handleUpdateChange}
                                 />
                             </div>
                             <div>
                                 <Label>In Stock</Label>
                                 <Input
-                                    name="discount"
-                                    type='checkbox'
-                                    value={updatedProduct.inStock ? 'true' : 'false'}
-                                    onChange={handleUpdateChange}
+                                    name="inStock"
+                                    type="checkbox"
+                                    checked={updatedProduct?.inStock || false}
+                                    onChange={() => setUpdatedProduct((prev) => ({
+                                        ...prev,
+                                        inStock: !prev.inStock,
+                                    }))}
                                 />
                             </div>
                         </div>
@@ -358,7 +246,7 @@ const AdminManageProduct = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div >
+        </div>
     );
 };
 

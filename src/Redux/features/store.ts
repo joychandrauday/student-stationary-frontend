@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import cartReducer from '../features/cart/cartSlice';
 import authReducer from '../features/auth/authSlice';
 import { baseApi } from '../api/baseApi';
 import {
@@ -10,31 +11,56 @@ import {
     PERSIST,
     PURGE,
     REGISTER,
-} from 'redux-persist'
-import storage from 'redux-persist/lib/storage'
+} from 'redux-persist';
+import storage from 'redux-persist/lib/storage';  // default to localStorage
+import Cookies from 'js-cookie';
 
-const persistConfig = {
-    key: 'auth',
-    storage
-}
+// Custom cookie storage for redux-persist
+const cookieStorage = {
+    getItem: (key: string) => {
+        const cookie = Cookies.get(key);  // Get cookie by key
+        return cookie ? Promise.resolve(cookie) : Promise.resolve(null); // Ensure it returns a promise
+    },
+    setItem: (key: string, value: string) => {
+        Cookies.set(key, value, { expires: 7, path: '' }); // Set cookie with an expiration of 7 days
+        return Promise.resolve(); // Return a resolved promise
+    },
+    removeItem: (key: string) => {
+        Cookies.remove(key);  // Remove cookie by key
+        return Promise.resolve(); // Return a resolved promise
+    }
+};
 
-const persistedAuthReducer = persistReducer(persistConfig, authReducer)
+// Persist configuration for cart (using localStorage)
+const cartPersistOptions = {
+    key: "cart",
+    storage,  // default localStorage
+};
+
+// Persist configuration for auth (using cookies)
+const authPersistOptions = {
+    key: "auth",
+    storage: cookieStorage,  // custom cookieStorage for auth
+};
+
+const persistedCart = persistReducer(cartPersistOptions, cartReducer);
+const persistedAuth = persistReducer(authPersistOptions, authReducer);
+
 export const store = configureStore({
     reducer: {
         [baseApi.reducerPath]: baseApi.reducer,
-        auth: persistedAuthReducer
+        cart: persistedCart,
+        auth: persistedAuth,  // Add the auth reducer
     },
     middleware: (getDefaultMiddlewares) =>
         getDefaultMiddlewares({
             serializableCheck: {
                 ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
             },
-        }).concat(baseApi.middleware)
-})
+        }).concat(baseApi.middleware),
+});
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
-export const persistor = persistStore(store)
+export const persistor = persistStore(store);
