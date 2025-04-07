@@ -6,6 +6,7 @@ import ImageGrid from "@/pageComponent/HomeComponent/ImageGrid";
 import OurService from "@/pageComponent/HomeComponent/OurService";
 import ProductTabs from "@/pageComponent/HomeComponent/ProductTabs";
 import StaticBgSection from "@/pageComponent/HomeComponent/StaticBgsection";
+import { TestimonialSection } from "@/pageComponent/HomeComponent/Testimonials/Testimonials";
 
 const Home = () => {
     return (
@@ -20,6 +21,7 @@ const Home = () => {
             <ImageGrid />
             <StaticBgSection />
             <BlogSection />
+            <TestimonialSection />
         </div >
     );
 }

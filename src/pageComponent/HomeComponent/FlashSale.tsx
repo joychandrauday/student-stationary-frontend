@@ -6,17 +6,19 @@ import { useDispatch } from "react-redux";
 import { addProduct } from "@/Redux/features/cart/cartSlice";
 import CountDown from "@/Utils/CountDown";
 import { IProduct } from "@/Interfaces/types";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Autoplay } from "swiper/modules";
+import "swiper/swiper-bundle.css";
 
 const FlashSale = () => {
     const { data } = useGetProductsQuery({ status: 'sale' });
     const { products } = data || {};
-    console.log(products);
+
 
     const dispatch = useDispatch();
 
     const handleAddToCart = (product: IProduct) => {
         dispatch(addProduct(product));
-        console.log("Added to Cart:", product.name);
     };
 
     return (
@@ -53,37 +55,53 @@ const FlashSale = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-full h-full animate-[shimmer_3s_infinite] opacity-20" />
             </motion.div>
 
-            {/* 📦 Flash Sale Products */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-10 w-full max-w-6xl">
-                {products && products.map((product) => (
-                    // Check if product._id is defined before rendering
-                    product._id ? (
-                        <div key={product._id} className="relative border border-gray-700 p-5 shadow-xl bg-gray-800 hover:bg-gray-700 transition-all duration-300 ">
-                            <img src={product.featuredImages} alt={product.name} className="w-full h-44 object-cover shadow-md" />
-                            <span className="absolute top-2 right-2 bg-primary-foreground text-white font-bold px-3 py-1 text-sm transform rotate-12 shadow-lg rounded-bl-lg before:content-[''] before:absolute before:inset-0 before:bg-white/20 before:rounded-bl-lg before:animate-shine">
-                                {product.discount}% off
-                            </span>
+            {/* 📦 Flash Sale Products with Swiper */}
+            <div className="w-full container mx-auto mt-10">
+                <Swiper
+                    modules={[Navigation, Autoplay]}
+                    spaceBetween={20}
+                    slidesPerView={4}
+                    loop={true}
+                    autoplay={{ delay: 3000, disableOnInteraction: false }}
+                    navigation={true}
+                    breakpoints={{
+                        320: { slidesPerView: 1 },
+                        768: { slidesPerView: 2 },
+                        1024: { slidesPerView: 4 },
+                    }}
+                    className="w-full"
+                >
+                    {products && products.map((product) => (
+                        product._id ? (
+                            <SwiperSlide key={product._id} className="flex justify-center">
+                                <div className="relative border border-gray-700 p-5 shadow-xl bg-gray-800 hover:bg-gray-700 transition-all duration-300 w-72 ">
+                                    <img src={product.featuredImages} alt={product.name} className="w-full h-44 object-cover shadow-md" />
+                                    <span className="absolute top-2 right-2 bg-primary-foreground text-white font-bold px-3 py-1 text-sm transform rotate-12 shadow-lg rounded-bl-lg before:content-[''] before:absolute before:inset-0 before:bg-white/20 before:rounded-bl-lg before:animate-shine">
+                                        {product.discount}% off
+                                    </span>
 
-                            <h3 className="text-xl font-semibold mt-4 text-white">{product.name}</h3>
-                            <div className="flex justify-between items-center">
-                                <p className="text-red-400 font-bold text-xl flex items-center"><HiCurrencyBangladeshi /> {product.price}</p>
-                                <p className="text-gray-600">
-                                    {product.discount ? (
-                                        <>
-                                            <span className="line-through text-red-500">৳{product.price}</span>
-                                            <span className="text-green-600 font-bold ml-2">৳{(product.price - (product.price * product.discount / 100)).toFixed(2)}</span>
-                                        </>
-                                    ) : (
-                                        <span>৳{product.price}</span>
-                                    )}
-                                </p>
-                            </div>
-                            <button className="mt-4 flex items-center justify-center bg-red-500 text-white px-4 py-2 rounded-none w-full hover:bg-red-600 transition" onClick={() => handleAddToCart(product)}>
-                                <FaShoppingCart className="mr-2" /> Add to Cart
-                            </button>
-                        </div>
-                    ) : null
-                ))}
+                                    <h3 className="text-xl font-semibold mt-4 text-white">{product.name}</h3>
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-red-400 font-bold text-xl flex items-center"><HiCurrencyBangladeshi /> {product.price}</p>
+                                        <p className="text-gray-600">
+                                            {product.discount ? (
+                                                <>
+                                                    <span className="line-through text-red-500">৳{product.price}</span>
+                                                    <span className="text-green-600 font-bold ml-2">৳{(product.price - (product.price * product.discount / 100)).toFixed(2)}</span>
+                                                </>
+                                            ) : (
+                                                <span>৳{product.price}</span>
+                                            )}
+                                        </p>
+                                    </div>
+                                    <button className="mt-4 flex items-center justify-center bg-red-500 text-white px-4 py-2 rounded-none w-full hover:bg-red-600 transition" onClick={() => handleAddToCart(product)}>
+                                        <FaShoppingCart className="mr-2" /> Add to Cart
+                                    </button>
+                                </div>
+                            </SwiperSlide>
+                        ) : null
+                    ))}
+                </Swiper>
             </div>
         </div>
     );

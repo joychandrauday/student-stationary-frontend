@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const DiscountGrid = () => {
     const navigate = useNavigate()
     return (
-        <div className="container mx-auto py-12 px-4 md:px-8 lg:px-12 overflow-hidden">
+        <div className="container mx-auto py-12 px-4 md:px-4  overflow-hidden">
             <div className="wrapper">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Grid Item 1 */}

@@ -9,12 +9,11 @@ const CategoriesDropdown = () => {
         Aos.init({ duration: 800, offset: 100 });
     }, []);
 
-    console.log(categories);
 
     return (
         <div className="relative group z-50 rounded-none">
             <div
-                className="hover:text-primary-foreground group flex items-center gap-2 transition duration-200"
+                className="hover:text-primary-foreground group hover:cursor-pointer flex items-center gap-2 transition duration-200"
             >
                 <TbCategory size={20} />
                 Browse By Category

@@ -103,7 +103,7 @@ const Cart = () => {
                             <img width={100} height={100} src={item.featuredImages} className="w-20 h-20 object-cover rounded-md" />
                             <div className="flex-1 ml-4">
                                 <h3 className="font-semibold text-lg">{item.name}</h3>
-                                <p className="text-gray-500">৳{item.price} | Quantity: {item.quantity ?? 0}</p>
+                                <p className="text-gray-500">৳{item.price} | Quantity: {item.orderQuantity ?? 0}</p>
                             </div>
                             <div className="flex items-center">
                                 <button onClick={() => updateQuantity(item._id as string, "dec")} className="px-3 py-1 border rounded-l hover:bg-gray-200" disabled={item.orderQuantity === 1}>-</button>

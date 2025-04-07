@@ -1,6 +1,5 @@
-
-import { Brand, useGetProductsQuery } from "@/Redux/features/product/productApi";
 import { useRef } from "react";
+import { Brand, useGetProductsQuery } from "@/Redux/features/product/productApi";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import 'swiper/swiper-bundle.css';
@@ -10,18 +9,14 @@ import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addProduct } from "@/Redux/features/cart/cartSlice";
 import { IProduct } from "@/Interfaces/types";
-
-
 const OnSale = () => {
     const { data } = useGetProductsQuery({ status: 'sale' });
     const { products } = data || {}
-    console.log(products);
     const swiperRef = useRef(null);
 
     const dispatch = useDispatch()
     const handleAddToCart = (product: IProduct) => {
         dispatch(addProduct(product))
-        console.log("Added to Cart:", product.name);
     };
     const isBrand = (brand: string | Brand | { name: string }): brand is Brand | { name: string } => {
         return typeof brand !== "string"; // It's either a Brand object or an inline object with 'name'
@@ -72,11 +67,11 @@ const OnSale = () => {
                                 <div className="flex items-center space-x-2">
                                     {product.offerPrice ? (
                                         <>
-                                            <p className="text-yellow-400 font-bold text-lg">৳{product.offerPrice}</p>
+                                            <p className="text-primary font-bold text-lg">৳{product.offerPrice}</p>
                                             <p className="text-gray-400 line-through text-sm">৳{product.price}</p>
                                         </>
                                     ) : (
-                                        <p className="text-yellow-400 font-bold text-lg">৳{product.price}</p>
+                                        <p className="text-primary font-bold text-lg">৳{product.price}</p>
                                     )}
                                 </div>
 

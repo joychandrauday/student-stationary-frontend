@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useLoginMutation } from '@/Redux/features/auth/authApi';
 import { setUser } from '@/Redux/features/auth/authSlice';
 import { useAppDispatch } from '@/Redux/features/hook';
@@ -22,7 +22,7 @@ interface LoginFormData {
 
 const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     const dispatch = useAppDispatch();
-    const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+    const { register, handleSubmit, formState: { errors }, setValue } = useForm<LoginFormData>({
         defaultValues: {
             email: "",
             password: "",
@@ -32,21 +32,25 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     const [login] = useLoginMutation();
     const location = useLocation();
     const navigate = useNavigate();
-
-    // Retrieve the desired route from the location state or fallback to "/"
     const from = location.state?.from?.pathname || "/";
 
     const onSubmit = async (logInInfo: LoginFormData) => {
         try {
             const res = await login(logInInfo).unwrap();
-            if (res.data.accessToken) {
+
+            if (res?.data?.accessToken) {
                 const user = verifyToken(res.data.accessToken);
+                if (!user) throw new Error("Invalid token");
+
                 dispatch(setUser({ user, token: res.data.accessToken }));
                 toast.success('Login successful!!');
                 setShowModal(false);
                 navigate(from, { replace: true });
+            } else {
+                throw new Error("Invalid response from server");
             }
         } catch (error) {
+            console.error("Login Error:", error);
             toast.error("Login failed! Please check your credentials.");
         }
     };
@@ -65,7 +69,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                         id="email"
                         {...register('email', { required: 'Email is required' })}
                         placeholder="Enter your email"
-                        className="w-full p-3 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                        className="w-full p-3 border border-gray-300 text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {errors.email && <p className="text-red-500 text-sm">Enter valid email</p>}
                 </div>
@@ -80,7 +84,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                         id="password"
                         {...register('password', { required: 'Password is required' })}
                         placeholder="Enter your password"
-                        className="w-full p-3 border border-gray-300 rounded-none focus:outline-none focus:ring-2 focus:ring-blue-500 text-primary"
+                        className="w-full p-3 border text-primary border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                     {errors.password && <p className="text-red-500 text-sm">Enter valid password</p>}
                 </div>
@@ -89,7 +93,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                 <div>
                     <button
                         type="submit"
-                        className="w-full bg-primary-foreground text-white font-semibold py-3 hover:bg-primary transition duration-200"
+                        className="w-full bg-blue-600 text-white font-semibold py-3 hover:bg-blue-700 transition duration-200"
                     >
                         Log In
                     </button>
@@ -101,9 +105,8 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                 <button
                     type="button"
                     onClick={() => {
-                        // Set default user credentials
-                        (document.getElementById("email") as HTMLInputElement).value = "user@3.com";
-                        (document.getElementById("password") as HTMLInputElement).value = "123456";
+                        setValue("email", "user@3.com");
+                        setValue("password", "123456");
                     }}
                     className="text-blue-500 underline"
                 >
@@ -112,8 +115,8 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                 <button
                     type="button"
                     onClick={() => {
-                        (document.getElementById("email") as HTMLInputElement).value = "test@admin.com";
-                        (document.getElementById("password") as HTMLInputElement).value = "aaaaaa";
+                        setValue("email", "test@admin.com");
+                        setValue("password", "aaaaaa");
                     }}
                     className="text-red-500 underline"
                 >

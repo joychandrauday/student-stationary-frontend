@@ -16,6 +16,8 @@ import { useSearchParams } from "react-router-dom";
 import ProductPagination from "@/pageComponent/product/ProductPagination";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import useImageUpload from "@/Utils/useUplaodImages";
+import LoadingPage from "@/pageComponent/Shared/LoadingPage";
 
 const AdminManageProduct = () => {
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -23,7 +25,7 @@ const AdminManageProduct = () => {
     const [updatedProduct, setUpdatedProduct] = useState<Partial<IProduct>>({});
     const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
-
+    const { uploadImages, isLoading: isUploading } = useImageUpload();
 
     const [searchParams] = useSearchParams();
 
@@ -56,9 +58,7 @@ const AdminManageProduct = () => {
 
     const { data, isLoading, refetch } = useGetProductsQuery(queryParams);
     const { products, meta } = data || {};
-    console.log(products);
-    const totalPages = meta?.totalPages || 1
-
+    const totalPages = meta?.totalPages || 1;
 
     const handleDelete = async (id: string) => {
         const { value: confirm } = await Swal.fire({
@@ -88,13 +88,49 @@ const AdminManageProduct = () => {
         setEditModalOpen(true);
     };
 
-    const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleUpdateChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setUpdatedProduct((prev) => ({ ...prev, [name]: value }));
     };
+
     const isBrand = (brand: string | Brand | { name: string }): brand is Brand | { name: string } => {
-        return typeof brand !== "string"; // It's either a Brand object or an inline object with 'name'
+        return typeof brand !== "string";
     };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const uploadedImages = await uploadImages(e.target.files);
+            if (uploadedImages.length > 0) {
+                setUpdatedProduct((prev) => ({
+                    ...prev,
+                    // Concatenate previous images with the newly uploaded images
+                    images: [...(prev.images || []), ...uploadedImages],
+                }));
+                toast.success('Images uploaded successfully!');
+            }
+        }
+    };
+
+
+    const handleDeleteImage = (index: number) => {
+        setUpdatedProduct((prev) => ({
+            ...prev,
+            images: prev.images?.filter((_, i) => i !== index)
+        }));
+    };
+    const handleFeaturedImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const uploadedImage = await uploadImages(e.target.files);
+            if (uploadedImage.length > 0) {
+                setUpdatedProduct((prev) => ({
+                    ...prev,
+                    featuredImages: uploadedImage[0], // Only the first image is set as the featured image
+                }));
+                toast.success('Featured image uploaded successfully!');
+            }
+        }
+    };
+
     const handleUpdateSubmit = async () => {
         if (selectedProduct) {
             try {
@@ -108,7 +144,7 @@ const AdminManageProduct = () => {
         }
     };
 
-    if (isLoading) return <p>Loading...</p>;
+    if (isLoading) return <LoadingPage />;
 
     return (
         <div className="max-w-7xl mx-auto rounded-none md:p-6">
@@ -132,33 +168,20 @@ const AdminManageProduct = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products && products?.map((product: IProduct, index: number) => (
+                            {products && products.map((product: IProduct, index: number) => (
                                 <TableRow key={product._id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell>{product.name}</TableCell>
                                     <TableCell>{product.status}</TableCell>
                                     <TableCell>{product.price}</TableCell>
-                                    <TableCell>  {isBrand(product.brand) ? product.brand.name : product.brand}
-                                    </TableCell>
-                                    <TableCell>
-                                        {
-                                            product.quantity === 0
-                                                ? <div className="bg-red-700 animate-pulse text-center text-white rounded-full">{product.quantity}</div>
-                                                : product.quantity
-                                        }
-                                    </TableCell>
+                                    <TableCell>{isBrand(product.brand) ? product.brand.name : product.brand}</TableCell>
+                                    <TableCell>{product.quantity === 0 ? <span className="bg-red-700 animate-pulse text-white rounded-full">{product.quantity}</span> : product.quantity}</TableCell>
                                     <TableCell>{product.discount}</TableCell>
                                     <TableCell className="text-center space-x-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleEditClick(product)}
-                                        >
+                                        <Button variant="outline" size="sm" onClick={() => handleEditClick(product)}>
                                             <Edit className="w-4 h-4" />
                                         </Button>
-                                        <Button variant="destructive" size="sm"
-                                            onClick={() => handleDelete(product._id as string)}
-                                        >
+                                        <Button variant="destructive" size="sm" onClick={() => handleDelete(product._id as string)}>
                                             <Trash2 className="w-4 h-4" />
                                         </Button>
                                     </TableCell>
@@ -171,14 +194,13 @@ const AdminManageProduct = () => {
                 </CardContent>
             </Card>
 
-            {/* Edit Product Modal */}
-            <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                <DialogContent>
+            <Dialog open={editModalOpen} onOpenChange={setEditModalOpen} >
+                <DialogContent className="max-h-[90vh] overflow-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Product</DialogTitle>
                     </DialogHeader>
                     {selectedProduct && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 h-auto">
                             <div>
                                 <Label>Name</Label>
                                 <Input
@@ -196,19 +218,7 @@ const AdminManageProduct = () => {
                                     onChange={handleUpdateChange}
                                 />
                             </div>
-                            <div>
-                                <Label>Status</Label>
-                                <select
-                                    name="status"
-                                    value={updatedProduct?.status || 'featured'}
-                                    onChange={handleUpdateChange}
-                                    className="w-full bg-primary-foreground text-white border-none rounded-none focus:ring-2 focus:ring-primary"
-                                >
-                                    <option value="sale">Sale</option>
-                                    <option value="hot">Hot</option>
-                                    <option value="featured">Featured</option>
-                                </select>
-                            </div>
+
                             <div>
                                 <Label>Price (BDT)</Label>
                                 <Input
@@ -219,34 +229,44 @@ const AdminManageProduct = () => {
                                 />
                             </div>
                             <div>
-                                <Label>Discount(%)</Label>
-                                <Input
-                                    name="discount"
-                                    value={updatedProduct?.discount || 0}
-                                    onChange={handleUpdateChange}
-                                />
+                                <Label>Description</Label>
+                                <Input name="description" value={updatedProduct?.description || ""} onChange={handleUpdateChange} />
+                            </div>
+                            <div className="flex gap-4 justify-between">
+                                <div className="wrap">
+
+                                    <Label>Featured Image</Label>
+                                    <Input type="file" onChange={handleFeaturedImageUpload} />
+                                </div>
+                                {updatedProduct.featuredImages && (
+                                    <div className="mt-2 border shadow p-2">
+                                        <img src={updatedProduct.featuredImages} alt="Featured" className="w-20 h-20 object-cover rounded-md" />
+                                    </div>
+                                )}
                             </div>
                             <div>
-                                <Label>In Stock</Label>
-                                <Input
-                                    name="inStock"
-                                    type="checkbox"
-                                    checked={updatedProduct?.inStock || false}
-                                    onChange={() => setUpdatedProduct((prev) => ({
-                                        ...prev,
-                                        inStock: !prev.inStock,
-                                    }))}
-                                />
+                                <div className="wrap flex gap-2">
+
+                                    {updatedProduct.images?.map((img, index) => (
+                                        <div key={index} className="relative border shadow p-2">
+                                            <img src={img} alt="Product" className="w-20 h-20 object-cover rounded-md" />
+                                            <button onClick={() => handleDeleteImage(index)} className="absolute top-0 right-0 flex justify-center items-center font-bold w-5 h-5 bg-red-500 text-white rounded-full p-1">x</button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <Label>Upload Images</Label>
+                                <Input type="file" multiple onChange={handleImageUpload} />
                             </div>
+
                         </div>
                     )}
                     <DialogFooter>
                         <Button onClick={() => setEditModalOpen(false)}>Cancel</Button>
-                        <Button onClick={handleUpdateSubmit}>Save Changes</Button>
+                        <Button onClick={handleUpdateSubmit} disabled={isUploading}>{isUploading ? "Uplaoding Image" : "Save Changes"}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };
 

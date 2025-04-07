@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import logo from '../../assets/studentstationarylogo.png'
 import { IOrder } from '@/Interfaces/types';
+import LoadingPage from '@/pageComponent/Shared/LoadingPage';
 
 const UserPayment = () => {
     const [searchParams] = useSearchParams();
@@ -15,12 +16,10 @@ const UserPayment = () => {
     const [spId, setSpId] = useState('')
     const [updateWholeOrder] = useUpdateWholeOrderMutation();
     const { data: order } = useGettingSingleOrderQuery(spId)
-    console.log(order?.data, 'hellooo');
     const orderData = order?.data
     const { isLoading, data } = useVerifyOrderQuery(orderId, {
         refetchOnMountOrArgChange: true,
     });
-    console.log(data);
     useEffect(() => {
         if (!isLoading && data?.data?.length > 0) {
             Swal.fire({
@@ -55,31 +54,34 @@ const UserPayment = () => {
     const generateInvoice = (orderData: IOrder) => {
         const doc = new jsPDF();
 
-        // Add logo to the document
+        // Add logo to the document with padding
         doc.addImage(logo, 'PNG', 160, 10, 45, 13);
 
-        // Set font size for the title and the rest of the document
-        doc.setFontSize(18);
-        doc.text('Invoice', 14, 20);
-        doc.setFontSize(12);
+        // Set a bold font for the title with larger size
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text('INVOICE', 14, 20);
 
-        const { createdAt, shippingAddress, products, transaction, orderStatus, paymentStatus, estimatedDeliveryDate } = orderData;
+        // Reset font for the rest of the document
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+
+        const { createdAt, shippingAddress, products, transaction, orderStatus, paymentStatus, estimatedDeliveryDate, user } = orderData;
         const orderDate = new Date(createdAt).toLocaleDateString();
+
+        // Ensure necessary data is available
         if (!createdAt || !shippingAddress || !products || !transaction || !orderStatus || !paymentStatus || !estimatedDeliveryDate) {
             return;
         }
-        const estimatedDelivery = new Date(estimatedDeliveryDate).toLocaleDateString();
-        let YH = 25;
-        doc.setFontSize(12);
 
-        // Display order details
+        const estimatedDelivery = new Date(estimatedDeliveryDate).toLocaleDateString();
+        let YH = 40; // Adjusted Y position for content
+
+        // Left side: Order-related info
+        doc.setFontSize(12);
         doc.text(`Order Date: ${orderDate}`, 14, YH);
         YH += 7;
         doc.text(`Transaction ID: ${transaction.id}`, 14, YH);
-        YH += 7;
-        doc.text(`Shipping Address: ${shippingAddress}`, 14, YH);
-        YH += 7;
-        doc.text(`Transaction Method: ${transaction.method}`, 14, YH);
         YH += 7;
         doc.text(`Transaction Status: ${paymentStatus}`, 14, YH);
         YH += 7;
@@ -87,11 +89,22 @@ const UserPayment = () => {
         YH += 7;
         doc.text(`Estimated Delivery Date: ${estimatedDelivery}`, 14, YH);
 
-        // Start table for the products
-        let finalY = YH + 10;  // Adjust start Y for the table
+        let userDetailsY = YH + 7;
+        doc.text(`User Name: ${user.name}`, 14, userDetailsY);
+        userDetailsY += 7;
+        doc.text(`Shipping Address: ${shippingAddress}`, 14, userDetailsY);
 
-        // Create table for products
+        // Table styling
+        let finalY = userDetailsY + 15;  // Adjust start Y for the table
+
+        // Set the heading for products with styling
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
         doc.text('Products:', 14, finalY);
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+
+        // Create table with better formatting
         autoTable(doc, {
             startY: finalY + 5,
             head: [['Product Name', 'Quantity', 'Price (Taka)', 'Total (Taka)']],
@@ -101,22 +114,39 @@ const UserPayment = () => {
                 product.price,
                 product.totalPrice
             ]),
+            theme: 'grid', // Add grid style to the table
+            headStyles: { fillColor: [33, 150, 243], textColor: [255, 255, 255], fontSize: 12, font: 'helvetica', halign: 'center' },
+            bodyStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontSize: 11, font: 'helvetica', halign: 'center' },
+            alternateRowStyles: { fillColor: [255, 255, 255] }, // Alternating row colors for better readability
             didDrawPage: (data) => {
                 // Calculate subtotal here
                 let subtotal = products.reduce((total, product) => total + product.totalPrice, 0);
 
-                // Add subtotal to the bottom of the table
-                doc.text(`Subtotal: Taka ${subtotal.toFixed(2)}`, 14, data.cursor ? data.cursor.y : 0 + 10); // Adjust position based on the table height
+                // Add subtotal to the bottom of the table with custom positioning
+                doc.setFont("helvetica", "bold");
+                doc.text(`Subtotal: Taka ${subtotal.toFixed(2)}`, 14, data.cursor ? data.cursor.y + 10 : 0 + 25);
+                doc.setFont("helvetica", "normal");
             }
         });
+
+
+        // Add footer with company info or additional notes
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text("Thank you for your purchase!", 14, doc.internal.pageSize.height - 20);
+        doc.text("For support, contact us at: joychandraud@gmail.com", 14, doc.internal.pageSize.height - 15);
+        doc.text("Buy more: https://student-stationary-frontend.vercel.app/products", 14, doc.internal.pageSize.height - 10);
 
         // Save the generated PDF
         doc.save('Invoice_' + orderData._id + '.pdf');
     };
 
 
+
+
+
     if (isLoading) {
-        return <div className="text-center text-lg font-semibold">Loading...</div>;
+        return <LoadingPage />;
     }
 
     if (!data || !data.data || data.data.length === 0) {
@@ -145,7 +175,7 @@ const UserPayment = () => {
             <div className="mt-6">
                 <button
                     onClick={() => generateInvoice(orderData)} // Call the generateInvoice function
-                    className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700"
+                    className="px-6 py-2 bg-primary text-white rounded-lg shadow-md hover:bg-primary-foreground"
                 >
                     Download Invoice
                 </button>

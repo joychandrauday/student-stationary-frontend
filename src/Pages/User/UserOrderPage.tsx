@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import LoadingPage from '@/pageComponent/Shared/LoadingPage';
 import { useCurrentUser } from '@/Redux/features/auth/authSlice';
 import { useAppSelector } from '@/Redux/features/hook';
 import { useGetUserOrdersQuery } from '@/Redux/features/order/orderApi';
@@ -27,7 +28,7 @@ const UserOrderPage = () => {
     const { data: user, isLoading: isUserLoading } = useGetUserQuery(userToken?.email ?? '');
     const { data: orders, isLoading } = useGetUserOrdersQuery(user?._id, { skip: !user?._id });
 
-    if (isUserLoading || isLoading) return <div className="text-center">Loading...</div>;
+    if (isUserLoading || isLoading) return <LoadingPage />;
 
     return (
         <div className="max-w-6xl mx-auto p-6">

@@ -1,124 +1,121 @@
-
-import { useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { RootState } from "@/Redux/features/store";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const UserSetting = () => {
+    const user = useSelector((state: RootState) => state.auth.user);
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [isSubscribed, setIsSubscribed] = useState(false);
 
-    const [userInfo, setUserInfo] = useState({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-    });
+    useEffect(() => {
+        if (user?.email) {
+            setEmail(user.email);
+        }
+    }, [user]);
 
-    const [privacySettings, setPrivacySettings] = useState({
-        profileVisibility: true, // true for public, false for private
-    });
+    useEffect(() => {
+        const fetchSubscription = async () => {
+            if (!email) return;
+            try {
+                const response = await fetch(`https://studentstationary-backend.vercel.app/api/v1/newsletter/${email}`);
+                const data = await response.json();
+                if (data.success) {
+                    setIsSubscribed(true);
+                }
+            } catch (error) {
+                console.error("Error fetching subscription data:", error);
+            }
+        };
+        fetchSubscription();
+    }, [email]);
 
-    const [notificationSettings, setNotificationSettings] = useState({
-        emailNotifications: true,
-        pushNotifications: false,
-    });
+    const handleSubscribe = async () => {
+        if (!email.trim()) {
+            toast.error("Please enter your email!");
+            return;
+        }
 
-    const handleSaveChanges = () => {
-        // Logic to save the settings changes (could be a POST request to backend)
-        alert('Settings Saved!');
+        setLoading(true);
+        try {
+            const response = await fetch("https://studentstationary-backend.vercel.app/api/v1/newsletter", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
+
+            if (response.ok) {
+                toast.success("Subscribed successfully!");
+                setIsSubscribed(true);
+            } else if (response.status === 400) {
+                toast.error("You are already subscribed!");
+            } else {
+                toast.error("Subscription failed! Try again.");
+            }
+        } catch (error) {
+            toast.error("Something went wrong! Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleUnsubscribe = async () => {
+        if (!email.trim()) {
+            toast.error("Please enter your email!");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await fetch(`https://studentstationary-backend.vercel.app/api/v1/newsletter/${email}`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
+            await response.json();
+            if (response.ok) {
+                toast.success("Unsubscribed successfully!");
+                setIsSubscribed(false);
+            } else {
+                toast.error("Failed to unsubscribe! Try again.");
+            }
+        } catch (error) {
+            toast.error("Something went wrong! Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-semibold mb-6">Account Settings</h1>
-
-            {/* Profile Settings */}
-            <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-medium mb-4">Profile Settings</h2>
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="name" className="block text-gray-600">Name</label>
-                        <input
-                            id="name"
-                            type="text"
-                            value={userInfo.name}
-                            onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="email" className="block text-gray-600">Email</label>
-                        <input
-                            id="email"
-                            type="email"
-                            value={userInfo.email}
-                            onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* Privacy Settings */}
-            <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-medium mb-4">Privacy Settings</h2>
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="profileVisibility" className="block text-gray-600">Profile Visibility</label>
-                        <select
-                            id="profileVisibility"
-                            value={privacySettings.profileVisibility ? 'Public' : 'Private'}
-                            onChange={(e) => setPrivacySettings({ ...privacySettings, profileVisibility: e.target.value === 'Public' })}
-                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="Public">Public</option>
-                            <option value="Private">Private</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            {/* Notification Settings */}
-            <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
-                <h2 className="text-xl font-medium mb-4">Notification Settings</h2>
-                <div className="space-y-4">
-                    <div>
-                        <label className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={notificationSettings.emailNotifications}
-                                onChange={() =>
-                                    setNotificationSettings({
-                                        ...notificationSettings,
-                                        emailNotifications: !notificationSettings.emailNotifications,
-                                    })
-                                }
-                                className="h-5 w-5"
-                            />
-                            <span className="text-gray-600">Email Notifications</span>
-                        </label>
-                    </div>
-                    <div>
-                        <label className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                checked={notificationSettings.pushNotifications}
-                                onChange={() =>
-                                    setNotificationSettings({
-                                        ...notificationSettings,
-                                        pushNotifications: !notificationSettings.pushNotifications,
-                                    })
-                                }
-                                className="h-5 w-5"
-                            />
-                            <span className="text-gray-600">Push Notifications</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            {/* Save Button */}
-            <div className="flex justify-end">
-                <button
-                    onClick={handleSaveChanges}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
-                >
-                    Save Changes
-                </button>
+        <div className="p-6 bg-white shadow-md rounded-md w-96 mx-auto mt-10">
+            <h2 className="text-xl font-bold mb-4">Newsletter Settings</h2>
+            <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-2 border rounded-md mb-4"
+            />
+            <div className="flex justify-between">
+                {isSubscribed ? (
+                    <button
+                        onClick={handleUnsubscribe}
+                        className="bg-red-500 text-white px-4 py-2 rounded-md disabled:opacity-50"
+                        disabled={loading}
+                    >
+                        {loading ? "Processing..." : "Unsubscribe"}
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleSubscribe}
+                        className="bg-primary-foreground text-white px-4 py-2 rounded-md disabled:opacity-50"
+                        disabled={loading}
+                    >
+                        {loading ? "Processing..." : "Subscribe"}
+                    </button>
+                )}
             </div>
         </div>
     );

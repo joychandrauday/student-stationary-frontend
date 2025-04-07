@@ -53,7 +53,7 @@ const SingleProduct = () => {
                 return;
             }
             const orderInfo = {
-                user: user._id,
+                user: user?._id,
                 products: {
                     productId: product._id,
                     quantity: quantity,
@@ -86,7 +86,7 @@ const SingleProduct = () => {
     };
 
     const [review, setReview] = useState<IReview>({
-        userId: user.id,
+        userId: user?.id,
         rating: 0,
         description: '',
         createdAt: new Date(),
@@ -96,12 +96,11 @@ const SingleProduct = () => {
         e.preventDefault();
         if (review.rating && review.description && id && user) {
             const newReview: IReview = {
-                userId: user.id,
+                userId: user?.id,
                 description: review.description,
                 rating: review.rating,
                 createdAt: new Date(),
             };
-            console.log(newReview);
             updateProduct({
                 productId: id,
                 updatedProduct: { reviews: [...(product?.reviews || []), newReview] } as ProductUpdate,
@@ -245,9 +244,12 @@ const SingleProduct = () => {
                                     className="w-14 text-black text-center border-x outline-none"
                                 />
                                 <button
-                                    onClick={() => setQuantity(Number(quantity) < Number(stock) ? Number(stock) + 1 : Number(stock))}
+                                    onClick={() => setQuantity(prev => (Number(prev) < Number(stock) ? Number(prev) + 1 : Number(stock)))}
                                     className="px-3 py-2 bg-gray-500 hover:bg-gray-300 rounded-r-md"
-                                >+</button>
+                                >
+                                    +
+                                </button>
+
                             </div>
                         </div>
 

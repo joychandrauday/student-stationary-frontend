@@ -2,7 +2,7 @@
 
 import { useGetBrandQuery } from "@/Redux/features/brand/brandApi";
 import { useGetcategoryQuery } from "@/Redux/features/Category/categoryApi";
-import { Link } from "react-router-dom";
+import { Link, ScrollRestoration } from "react-router-dom";
 
 const Explore = () => {
     const { data: categories } = useGetcategoryQuery()
@@ -58,6 +58,7 @@ const Explore = () => {
                     </div>
                 </div>
             </div>
+            <ScrollRestoration />
         </div >
     );
 };

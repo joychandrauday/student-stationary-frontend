@@ -15,13 +15,11 @@ import { IProduct } from "@/Interfaces/types";
 const TopRated = () => {
     const { data } = useGetProductsQuery({ minRating: 4 });
     const { products } = data || {}
-    console.log(products);
     const swiperRef = useRef(null);
 
     const dispatch = useDispatch()
     const handleAddToCart = (product: IProduct) => {
         dispatch(addProduct(product))
-        console.log("Added to Cart:", product.name);
     };
     const isBrand = (brand: string | Brand | { name: string }): brand is Brand | { name: string } => {
         return typeof brand !== "string"; // It's either a Brand object or an inline object with 'name'
@@ -72,11 +70,11 @@ const TopRated = () => {
                                 <div className="flex items-center space-x-2">
                                     {product.offerPrice ? (
                                         <>
-                                            <p className="text-yellow-400 font-bold text-lg">৳{product.offerPrice}</p>
+                                            <p className="text-primary font-bold text-lg">৳{product.offerPrice}</p>
                                             <p className="text-gray-400 line-through text-sm">৳{product.price}</p>
                                         </>
                                     ) : (
-                                        <p className="text-yellow-400 font-bold text-lg">৳{product.price}</p>
+                                        <p className="text-primary font-bold text-lg">৳{product.price}</p>
                                     )}
                                 </div>
 

@@ -1,5 +1,6 @@
 import { IProduct } from '@/Interfaces/types';
 import ProductCard from '@/pageComponent/product/ProductCard';
+import LoadingPage from '@/pageComponent/Shared/LoadingPage';
 import { useGetProductsQuery } from '@/Redux/features/product/productApi';
 import { useParams } from 'react-router-dom';
 
@@ -13,10 +14,8 @@ const SingleCategories = () => {
     const { data, isLoading, isError } = useGetProductsQuery(queryParams);
 
     const products = data?.products || [];
-    console.log(products);
-
     // Handle loading and error states
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) return <LoadingPage />;
     if (isError) return <div>Error fetching products. Please try again later.</div>;
 
     return (

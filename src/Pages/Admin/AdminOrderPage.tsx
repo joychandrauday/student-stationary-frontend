@@ -1,4 +1,5 @@
 import { IOrder } from "@/Interfaces/types";
+import LoadingPage from "@/pageComponent/Shared/LoadingPage";
 import { useAllOrdersQuery, useDeleteOrderMutation, useUpdateOrderMutation } from "@/Redux/features/order/orderApi";
 import toast from "react-hot-toast";
 import { FaTrash } from "react-icons/fa";
@@ -31,13 +32,12 @@ const AdminOrderPage = () => {
     };
     const handleDeleteOrder = async (id: string) => {
         const res = await deleteOrder(id)
-        console.log(res)
         if (res) {
             toast.success('Deleted order successfully!');
             refetch()
         }
     }
-    if (isLoading) return <div>Loading...</div>;
+    if (isLoading) return <LoadingPage />;
     if (error) return <div>Error loading orders!</div>;
 
     return (

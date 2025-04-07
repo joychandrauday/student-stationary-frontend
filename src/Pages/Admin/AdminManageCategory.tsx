@@ -1,4 +1,5 @@
 import { ICategory } from "@/Interfaces/types";
+import LoadingPage from "@/pageComponent/Shared/LoadingPage";
 import { useAddcategoryMutation, useDeletecategoryMutation, useGetcategoryQuery, useUpdatecategoryMutation } from "@/Redux/features/Category/categoryApi";
 import useImageUpload from "@/Utils/useUplaodImages";
 import React, { useState } from "react";
@@ -79,7 +80,7 @@ const AdminManageCategory = () => {
         }
     }
 
-    if (isLoading) return <div className="text-center py-12">Loading...</div>;
+    if (isLoading) return <LoadingPage />;
     if (isError) return <div className="text-center text-red-500 py-12">Error fetching categories</div>;
 
     return (

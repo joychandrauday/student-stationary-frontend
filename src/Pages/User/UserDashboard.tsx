@@ -1,4 +1,5 @@
 import { useAllOrdersQuery } from '@/Interfaces/types';
+import LoadingPage from '@/pageComponent/Shared/LoadingPage';
 import { orderedProducts } from '@/Redux/features/cart/cartSlice';
 import { useAppSelector } from '@/Redux/features/hook';
 import { useGetUserOrdersQuery } from '@/Redux/features/order/orderApi';
@@ -13,7 +14,7 @@ const UserDashboard = () => {
     });
     const products = useAppSelector(orderedProducts);
     if (userLoading || ordersLoading) {
-        return <div>Loading...</div>; // Or you can show a spinner here
+        return <LoadingPage />; // Or you can show a spinner here
     }
 
     if (userError || ordersError) {

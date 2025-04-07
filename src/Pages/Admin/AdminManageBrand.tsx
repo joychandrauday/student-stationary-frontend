@@ -1,4 +1,5 @@
 
+import LoadingPage from "@/pageComponent/Shared/LoadingPage";
 import { useAddBrandMutation, useDeleteBrandMutation, useGetBrandQuery, useUpdateBrandMutation } from "@/Redux/features/brand/brandApi";
 import { Brand } from "@/Redux/features/product/productApi";
 import useImageUpload from "@/Utils/useUplaodImages";
@@ -78,7 +79,7 @@ const AdminManageBrand = () => {
         await deleteBrand(BrandId);
     };
 
-    if (isLoading) return <div className="text-center py-12">Loading...</div>;
+    if (isLoading) return <LoadingPage />;
     if (isError) return <div className="text-center text-red-500 py-12">Error fetching categories</div>;
 
     return (

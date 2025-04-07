@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { IconType } from "react-icons";
-import { useLocation } from "react-router-dom"; // Import this for React Router
+import { Link, useLocation } from "react-router-dom"; // Import this for React Router
 import {
     FaShoppingCart,
     FaUsers,
@@ -14,6 +14,8 @@ import {
     FaShoppingBag,
     FaPlusCircle,
     FaStackExchange,
+    FaEnvelope,
+    FaCog,
 } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import {
@@ -73,11 +75,11 @@ const adminItems: AdminItem[] = [
         url: "reports",
         icon: FaChartBar,
     },
-    // {
-    //     title: "Settings",
-    //     url: "settings",
-    //     icon: FaCog,
-    // },
+    {
+        title: "Newsletter",
+        url: "newsletter",
+        icon: FaCog,
+    },
 ];
 
 const userItems: AdminItem[] = [
@@ -105,6 +107,11 @@ const userItems: AdminItem[] = [
         title: "Account Details",
         url: "account-details",
         icon: FaUser,
+    },
+    {
+        title: "Accessibility",
+        url: "settings",
+        icon: FaEnvelope,
     },
 ];
 
@@ -181,9 +188,9 @@ const AppSidebar = ({ user }: AppSidebarProps) => {
                                     {expanded[item.title] && (
                                         <div className="pl-4 pt-2">
                                             {item.subItems.map((subItem) => (
-                                                <a
+                                                <Link
                                                     key={subItem.title}
-                                                    href={`/${user?.role ?? "guest"}/${item.url}/${subItem.url}`}
+                                                    to={`/${user?.role ?? "guest"}/${item.url}/${subItem.url}`}
                                                     className={`gap-2 py-2 flex px-3 rounded-none ${location.pathname ===
                                                         `/${user?.role ?? "guest"}/${item.url}/${subItem.url}`
                                                         ? "bg-primary text-white"
@@ -199,15 +206,15 @@ const AppSidebar = ({ user }: AppSidebarProps) => {
                                                     />
                                                     {subItem.title}
 
-                                                </a>
+                                                </Link>
                                             ))}
                                         </div>
                                     )}
                                 </>
                             ) : (
                                 <SidebarMenuButton asChild className="bg-hover-primary">
-                                    <a
-                                        href={`/${user?.role ?? "guest"}/${item.url}`}
+                                    <Link
+                                        to={`/${user?.role ?? "guest"}/${item.url}`}
                                         className={`flex items-center gap-4 p-3 hover:bg-primary shadow rounded-none transition-all duration-300 ${location.pathname === `/${user?.role ?? "guest"}/${item.url}`
                                             ? "bg-primary text-white"
                                             : "hover:bg-gray-800 hover:text-primary"
@@ -221,7 +228,7 @@ const AppSidebar = ({ user }: AppSidebarProps) => {
                                             size={24}
                                         />
                                         <span className="text-md font-semibold">{item.title}</span>
-                                    </a>
+                                    </Link>
                                 </SidebarMenuButton>
                             )}
                         </SidebarMenuItem>

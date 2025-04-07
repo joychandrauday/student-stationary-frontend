@@ -6,7 +6,6 @@ import Dashboard from "@/layouts/Dashboard";
 import AdminDashboard from "@/Pages/Admin/AdminDashboard";
 import AdminUserManagement from "@/Pages/Admin/AdminUserManagement";
 import AdminReport from "@/Pages/Admin/AdminReport";
-import AdminSetting from "@/Pages/Admin/AdminSetting";
 import AdminAddProduct from "@/Pages/Admin/AdminAddProduct";
 import AdminManageProduct from "@/Pages/Admin/AdminManageProduct";
 import AdminOrderPage from "@/Pages/Admin/AdminOrderPage";
@@ -31,6 +30,8 @@ import ContactUS from "@/Pages/Shared/ContactUS";
 import AdminManageCategory from "@/Pages/Admin/AdminManageCategory";
 import AdminManageFlash from "@/Pages/Admin/AdminManageFlash";
 import AdminManageBrand from "@/Pages/Admin/AdminManageBrand";
+import AdminNewsLetter from "@/Pages/Admin/AdminNewsLetter";
+import Unsubscribe from "@/Pages/Shared/Unsubscribe";
 
 export const router = createBrowserRouter([
   {
@@ -63,12 +64,16 @@ export const router = createBrowserRouter([
         element: <About />,
       },
       {
-        path: "/contact-us",
+        path: "/contact",
         element: <ContactUS />,
       },
       {
         path: "/login",
         element: <Login refetch={undefined} setShowModal={() => false} />,
+      },
+      {
+        path: "/unsubscribe",
+        element: <Unsubscribe />,
       },
 
       {
@@ -109,8 +114,8 @@ export const router = createBrowserRouter([
         element: <AdminReport />,
       },
       {
-        path: "settings",
-        element: <AdminSetting />,
+        path: "newsletter",
+        element: <AdminNewsLetter />,
       },
       {
         path: "products/add-product",
