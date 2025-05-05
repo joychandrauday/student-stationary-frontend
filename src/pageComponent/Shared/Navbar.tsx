@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import logo from "../../assets/studentstationarylogowhite.png";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FiShoppingCart } from "react-icons/fi";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaBars, FaTimes, FaUserCircle } from "react-icons/fa";
@@ -25,6 +25,15 @@ const Navbar = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const dispatch = useAppDispatch();
     const products = useAppSelector(orderedProducts)
+    const location = useLocation();
+    const links = [
+        { path: "/", label: "Home" },
+        { path: "/explore", label: "Explore" },
+        { path: "/products", label: "Products" },
+        { path: "/categories", label: "Categories" },
+        { path: "/about", label: "About Us" },
+        { path: "/contact", label: "Contact" },
+    ];
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 0);
@@ -175,12 +184,18 @@ const Navbar = () => {
 
                         {/* Desktop Menu */}
                         <div className="hidden sm:flex items-center space-x-6">
-                            <a href="/" className="hover:text-primary-foreground transition duration-200">Home</a>
-                            <a href="/explore" className="hover:text-primary-foreground transition duration-200">Explore</a>
-                            <a href="/products" className="hover:text-primary-foreground transition duration-200">Products</a>
-                            <a href="/categories" className="hover:text-primary-foreground transition duration-200">Categories</a>
-                            <a href="/about" className="hover:text-primary-foreground transition duration-200">About Us</a>
-                            <a href="/contact" className="hover:text-primary-foreground transition duration-200">Contact</a>
+                            {links.map((link) => (
+                                <a
+                                    key={link.path}
+                                    href={link.path}
+                                    className={`transition duration-200 ${location.pathname === link.path
+                                        ? "text-primary-foreground font-semibold"
+                                        : "hover:text-primary-foreground"
+                                        }`}
+                                >
+                                    {link.label}
+                                </a>
+                            ))}
                         </div>
 
                         {/* User Profile & Admin Links */}
