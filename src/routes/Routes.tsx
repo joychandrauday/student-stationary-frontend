@@ -32,6 +32,8 @@ import AdminManageFlash from "@/Pages/Admin/AdminManageFlash";
 import AdminManageBrand from "@/Pages/Admin/AdminManageBrand";
 import AdminNewsLetter from "@/Pages/Admin/AdminNewsLetter";
 import Unsubscribe from "@/Pages/Shared/Unsubscribe";
+import SingleBlog from "@/pageComponent/HomeComponent/SingleBlog";
+import AllBlogs from "@/pageComponent/HomeComponent/AllBlogs";
 
 export const router = createBrowserRouter([
   {
@@ -68,6 +70,14 @@ export const router = createBrowserRouter([
         element: <ContactUS />,
       },
       {
+        path: "/blogs",
+        element: <AllBlogs />,
+      },
+      {
+        path: "/blog/:id",
+        element: <SingleBlog />,
+      },
+      {
         path: "/login",
         element: <Login refetch={undefined} setShowModal={() => false} />,
       },
@@ -86,7 +96,9 @@ export const router = createBrowserRouter([
       },
       {
         path: "/cart",
-        element: <Cart />,
+        element: <ProtectedRoutes>
+          <Cart />,
+        </ProtectedRoutes>
       },
     ],
   },

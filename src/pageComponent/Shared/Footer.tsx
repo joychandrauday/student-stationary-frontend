@@ -21,7 +21,7 @@ const Footer = () => {
         const fetchSubscription = async () => {
             if (!email) return;
             try {
-                const response = await fetch(`https://relistshop.vercel.app/api/v1/newsletter/${email}`);
+                const response = await fetch(`https://studentstationary-backend.vercel.app/api/v1/newsletter/${email}`);
                 const data = await response.json();
                 if (data.success) {
                     setIsSubscribed(true);

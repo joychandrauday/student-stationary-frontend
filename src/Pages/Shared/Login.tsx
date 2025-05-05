@@ -1,4 +1,3 @@
-
 import { useLoginMutation } from '@/Redux/features/auth/authApi';
 import { setUser } from '@/Redux/features/auth/authSlice';
 import { useAppDispatch } from '@/Redux/features/hook';
@@ -20,6 +19,13 @@ interface LoginFormData {
     password: string;
 }
 
+// Define location state type
+interface LocationState {
+    from?: {
+        pathname: string;
+    };
+}
+
 const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     const dispatch = useAppDispatch();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<LoginFormData>({
@@ -32,7 +38,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
     const [login] = useLoginMutation();
     const location = useLocation();
     const navigate = useNavigate();
-    const from = location.state?.from?.pathname || "/";
+    const from = (location.state as LocationState)?.from?.pathname || "/";
 
     const onSubmit = async (logInInfo: LoginFormData) => {
         try {
@@ -45,7 +51,7 @@ const Login: React.FC<LoginProps> = ({ setShowModal }) => {
                 dispatch(setUser({ user, token: res.data.accessToken }));
                 toast.success('Login successful!!');
                 setShowModal(false);
-                navigate(from, { replace: true });
+                navigate(from, { replace: true }); // redirect to previous route
             } else {
                 throw new Error("Invalid response from server");
             }

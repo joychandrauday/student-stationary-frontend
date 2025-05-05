@@ -1,23 +1,21 @@
 import { IBlog } from "@/Interfaces/types";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, ScrollRestoration } from "react-router-dom";
 
-const BlogSection = () => {
+const AllBlogs = () => {
     const [blogs, setBlogs] = useState<IBlog[]>([]);
 
     useEffect(() => {
         fetch("/blogs.json")
             .then((res) => res.json())
-            .then((data) => setBlogs(data));
+            .then((data: IBlog[]) => setBlogs(data))
+            .catch((err) => console.error("Failed to fetch blogs:", err));
     }, []);
 
     return (
         <div className="min-h-screen py-12">
             <div className="container mx-auto px-4">
-                <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">
-                    Latest Blog Posts
-                </h2>
-
+                <h2 className="text-4xl font-bold text-center text-gray-800 mb-8">Latest Blog Posts</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {blogs.map((blog) => (
                         <div
@@ -38,8 +36,9 @@ const BlogSection = () => {
                     ))}
                 </div>
             </div>
+            <ScrollRestoration />
         </div>
     );
 };
 
-export default BlogSection;
+export default AllBlogs;

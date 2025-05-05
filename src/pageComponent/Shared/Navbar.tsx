@@ -214,9 +214,6 @@ const Navbar = () => {
                                                 <a href={`${user.role === 'admin' ? 'admin' : 'user'}/dashboard`}> Dashboard </a>
                                             </DropdownMenuItem>
 
-                                            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:bg-primary-foreground">
-                                                Logout
-                                            </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
 

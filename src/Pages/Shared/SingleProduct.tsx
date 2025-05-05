@@ -219,7 +219,7 @@ const SingleProduct = () => {
                         {/* Product Info */}
                         <div className="mt-4 space-y-2">
                             <p className="text-gray-700"><span className="font-semibold">Brand:</span> {brandName}</p>
-
+                            <p className="text-gray-700"><span className="font-semibold">Quantity:</span> {stock}</p>
                             <p className="text-gray-700"><span className="font-semibold">Category:</span> {catName}</p>
                             <p className="text-xl font-bold text-primary">৳{price}</p>
                             <p className={`font-semibold ${inStock ? "text-green-600" : "text-red-500"}`}>
@@ -255,16 +255,20 @@ const SingleProduct = () => {
 
                         {/* Buttons */}
                         <div className="mt-6 space-y-3">
+
                             <button
                                 onClick={() => addToCart(product)}
-                                disabled={!inStock || !user}
-                                className={`w-full py-3 font-semibold  rounded-lg transition ${inStock ? "bg-transparent border-primary-foreground border-2 text-primary hover:bg-primary-foreground" : "bg-gray-400 cursor-not-allowed"
+                                disabled={!inStock}
+                                className={`w-full py-3 font-semibold rounded-lg transition ${inStock
+                                    ? "bg-transparent border-primary-foreground border-2 text-primary hover:bg-primary-foreground"
+                                    : "bg-gray-400 cursor-not-allowed"
                                     }`}
                             >
                                 Add to Cart
                             </button>
 
                             {showShipping && (
+
                                 <div className="mt-4">
                                     <label htmlFor="shippingAddress" className="block text-gray-700 font-medium mb-2">
                                         Shipping Address:
@@ -280,16 +284,26 @@ const SingleProduct = () => {
                                     />
                                 </div>
                             )}
-
+                            {/* Show sign-in warning if user is not logged in */}
+                            {!user && (
+                                <p className="text-red-600 text-sm font-medium text-center">
+                                    Please sign in first to continue.
+                                </p>
+                            )}
                             <button
                                 onClick={showShipping ? handleBuyNow : handleBuyNowClick}
                                 disabled={!inStock || !user}
-                                className={`w-full py-3 font-semibold text-white rounded-lg transition ${inStock ? "bg-primary-foreground hover:bg-primary" : "bg-gray-400 cursor-not-allowed"
+                                className={`w-full py-3 font-semibold text-white rounded-lg transition 
+                                    ${inStock && user
+                                        ? "bg-primary-foreground hover:bg-primary"
+                                        : "bg-gray-400 text-gray-200 opacity-60 cursor-not-allowed pointer-events-none"
                                     }`}
                             >
                                 {showShipping ? "Confirm Purchase" : "Buy Now"}
                             </button>
+
                         </div>
+
                     </div>
 
                 </div>
@@ -317,7 +331,7 @@ const SingleProduct = () => {
                                             </div>
                                             <div className="flex absolute top-2 right-2 items-center mt-1">{getStars(review.rating)}</div>
                                             {
-                                                review.userId._id === user.id &&
+                                                user && review.userId._id === user?.id &&
                                                 <button
                                                     className="flex absolute bottom-2 text-red-500 right-2 items-center mt-1"
                                                     onClick={() => handleDeleteReview(review)}
